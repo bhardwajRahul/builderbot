@@ -127,9 +127,7 @@ export class MetaCoreVendor extends EventEmitter {
             await Promise.all(
                 messages.map((message: any) => async () => {
                     let contact: ContactMeta
-                    if (Array.isArray(contacts)) {
-                        ;[contact] = contacts
-                    }
+                    if (Array.isArray(contacts)) [contact] = contacts
                     const to = body.entry[0].changes[0].value?.metadata?.display_phone_number
                     const pushName: string | undefined = contact?.profile?.name ?? 'Unknown'
                     const fileData =
