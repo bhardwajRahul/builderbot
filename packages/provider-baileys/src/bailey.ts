@@ -36,6 +36,7 @@ import bindStore from './bindStore'
 import { releaseTmp } from './releaseTmp'
 import type { BaileyGlobalVendorArgs } from './type'
 import { baileyGenerateImage, baileyCleanNumber, baileyIsValidNumber, emptyDirSessions } from './utils'
+import { Browsers, delay } from '@whiskeysockets/baileys'
 
 const logger = new Console({
     stdout: createWriteStream(`${process.cwd()}/baileys.log`),
@@ -46,7 +47,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
         name: `bot`,
         gifPlayback: false,
         usePairingCode: false,
-        browser: ['Ubuntu', 'Chrome', '20.0.04'],
+        browser: Browsers.windows('Google Chrome'),
         phoneNumber: null,
         useBaileysStore: true,
         port: 3000,
@@ -221,6 +222,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
                 if (this.globalVendorArgs.phoneNumber) {
                     await sock.waitForConnectionUpdate((update: { qr: any }) => !!update.qr)
                     const phoneNumberClean = utils.removePlus(this.globalVendorArgs.phoneNumber)
+                    await delay(800)
                     const code = await sock.requestPairingCode(phoneNumberClean)
 
                     this.emit('require_action', {
