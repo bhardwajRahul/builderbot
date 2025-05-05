@@ -1,6 +1,7 @@
 import { ProviderClass, utils } from '@builderbot/bot'
 import type { BotContext, Button, SendOptions } from '@builderbot/bot/dist/types'
 import type { Boom } from '@hapi/boom'
+import { Browsers, delay } from '@whiskeysockets/baileys'
 import { Console } from 'console'
 import type { PathOrFileDescriptor } from 'fs'
 import { createReadStream, createWriteStream, readFileSync, existsSync } from 'fs'
@@ -36,7 +37,6 @@ import bindStore from './bindStore'
 import { releaseTmp } from './releaseTmp'
 import type { BaileyGlobalVendorArgs } from './type'
 import { baileyGenerateImage, baileyCleanNumber, baileyIsValidNumber, emptyDirSessions } from './utils'
-import { Browsers, delay } from '@whiskeysockets/baileys'
 
 const logger = new Console({
     stdout: createWriteStream(`${process.cwd()}/baileys.log`),
