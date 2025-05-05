@@ -47,7 +47,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
         name: `bot`,
         gifPlayback: false,
         usePairingCode: false,
-        browser: Browsers.windows('Google Chrome'),
+        browser: ['Windows', 'Google Chrome', '10.0.0.1'],
         phoneNumber: null,
         useBaileysStore: true,
         port: 3000,
@@ -221,25 +221,19 @@ class BaileysProvider extends ProviderClass<WASocket> {
             this.vendor = sock
             if (this.globalVendorArgs.usePairingCode && !sock.authState.creds.registered) {
                 if (this.globalVendorArgs.phoneNumber) {
-                    await sock.waitForConnectionUpdate((update: { qr: any }) => !!update.qr)
                     const phoneNumberClean = utils.removePlus(this.globalVendorArgs.phoneNumber)
+                    await delay(2000)
+                    const code = await sock.requestPairingCode(phoneNumberClean)
 
-                    setTimeout(async () => {
-                        try {
-                            const code = await sock.requestPairingCode(phoneNumberClean)
-                            this.emit('require_action', {
-                                title: '⚡⚡ ACTION REQUIRED ⚡⚡',
-                                instructions: [
-                                    `Accept the WhatsApp notification from ${this.globalVendorArgs.phoneNumber} on your phone 👌`,
-                                    `The token for linking is: ${code}`,
-                                    `Need help: https://link.codigoencasa.com/DISCORD`,
-                                ],
-                                payload: { qr: null, code },
-                            })
-                        } catch (e) {
-                            logger.log(e)
-                        }
-                    }, 5000)
+                    this.emit('require_action', {
+                        title: '⚡⚡ ACTION REQUIRED ⚡⚡',
+                        instructions: [
+                            `Accept the WhatsApp notification from ${this.globalVendorArgs.phoneNumber} on your phone 👌`,
+                            `The token for linking is: ${code}`,
+                            `Need help: https://link.codigoencasa.com/DISCORD`,
+                        ],
+                        payload: { qr: null, code },
+                    })
                 } else {
                     this.emit('auth_failure', [
                         `The phone number has not been defined, please add it`,
