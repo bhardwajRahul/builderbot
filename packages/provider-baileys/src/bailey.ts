@@ -1,12 +1,12 @@
 import { ProviderClass, utils } from '@builderbot/bot'
 import type { BotContext, Button, SendOptions } from '@builderbot/bot/dist/types'
 import type { Boom } from '@hapi/boom'
-import { Browsers, delay } from '@whiskeysockets/baileys'
 import { Console } from 'console'
 import type { PathOrFileDescriptor } from 'fs'
-import { createReadStream, createWriteStream, readFileSync, existsSync } from 'fs'
+import { createReadStream, createWriteStream, readFileSync } from 'fs'
 import { writeFile } from 'fs/promises'
 import mime from 'mime-types'
+import NodeCache from 'node-cache'
 import { tmpdir } from 'os'
 import { join, basename, resolve } from 'path'
 import pino from 'pino'
@@ -24,7 +24,6 @@ import {
     MessageUpsertType,
     isJidGroup,
     isJidBroadcast,
-    makeInMemoryStore,
     DisconnectReason,
     downloadMediaMessage,
     getAggregateVotesInPollMessage,
@@ -33,7 +32,6 @@ import {
     proto,
     useMultiFileAuthState,
 } from './baileyWrapper'
-import bindStore from './bindStore'
 import { releaseTmp } from './releaseTmp'
 import type { BaileyGlobalVendorArgs } from './type'
 import { baileyGenerateImage, baileyCleanNumber, baileyIsValidNumber, emptyDirSessions } from './utils'
@@ -60,14 +58,14 @@ class BaileysProvider extends ProviderClass<WASocket> {
         experimentalSyncMessage: undefined,
     }
 
-    store?: ReturnType<typeof makeInMemoryStore>
+    msgRetryCounterCache?: NodeCache
 
     private idsDuplicates = []
     private mapSet = new Set()
 
     constructor(args: Partial<BaileyGlobalVendorArgs>) {
         super()
-        this.store = null
+        this.msgRetryCounterCache = new NodeCache()
         this.globalVendorArgs = { ...this.globalVendorArgs, ...args }
     }
 
@@ -113,10 +111,6 @@ class BaileysProvider extends ProviderClass<WASocket> {
     }
 
     protected getMessage = async (key: { remoteJid: string; id: string }) => {
-        if (this.store) {
-            const msg = await this.store.loadMessage(key.remoteJid, key.id)
-            return msg?.message || undefined
-        }
         // only if store is present
         return proto.Message.fromObject({})
     }
@@ -135,33 +129,6 @@ class BaileysProvider extends ProviderClass<WASocket> {
 
         try {
             if (this.globalVendorArgs.useBaileysStore) {
-                this.store = !this.globalVendorArgs.experimentalStore
-                    ? makeInMemoryStore({ logger: loggerBaileys })
-                    : bindStore({ logger: loggerBaileys })
-
-                if (this.store?.readFromFile) this.store?.readFromFile(`${NAME_DIR_SESSION}/baileys_store.json`)
-
-                if (this.globalVendorArgs.autoRefresh > 0) {
-                    setInterval(() => {
-                        if (this.globalVendorArgs.host?.phone) {
-                            try {
-                                const jid = this.globalVendorArgs.host?.id
-                                this.vendor.presenceSubscribe(jid)
-                                this.vendor.getBusinessProfile(jid)
-                            } catch (e) {
-                                console.log(e)
-                            }
-                        }
-                    }, this.globalVendorArgs.autoRefresh)
-                }
-
-                setInterval(() => {
-                    const path = `${NAME_DIR_SESSION}/baileys_store.json`
-                    if (existsSync(NAME_DIR_SESSION)) {
-                        this.store?.writeToFile(path)
-                    }
-                }, 10_000)
-
                 if (this.globalVendorArgs.timeRelease > 0) {
                     await releaseTmp(NAME_DIR_SESSION, this.globalVendorArgs.timeRelease)
                 }
@@ -184,8 +151,8 @@ class BaileysProvider extends ProviderClass<WASocket> {
                 syncFullHistory: false,
                 markOnlineOnConnect: false,
                 generateHighQualityLinkPreview: true,
-                getMessage: async (key: { remoteJid: string; id: string }) =>
-                    (await this.getMessage(key)) as Promise<proto.IMessage>,
+                getMessage: this.getMessage,
+                msgRetryCounterCache: this.msgRetryCounterCache,
                 retryRequestDelayMs: 350,
                 maxMsgRetryCount: 4,
                 connectTimeoutMs: 20_000,
@@ -217,12 +184,11 @@ class BaileysProvider extends ProviderClass<WASocket> {
                 ...this.globalVendorArgs,
             })
 
-            if (this?.store) this.store.bind(sock.ev)
             this.vendor = sock
             if (this.globalVendorArgs.usePairingCode && !sock.authState.creds.registered) {
                 if (this.globalVendorArgs.phoneNumber) {
                     const phoneNumberClean = utils.removePlus(this.globalVendorArgs.phoneNumber)
-                    await delay(2000)
+                    await utils.delay(2000)
                     const code = await sock.requestPairingCode(phoneNumberClean)
 
                     this.emit('require_action', {
@@ -484,18 +450,11 @@ class BaileysProvider extends ProviderClass<WASocket> {
                             }
 
                             const messageOriginalKey = messageCtx?.update?.pollUpdates[0]?.pollUpdateMessageKey
-                            const messageOriginal = await this.store?.loadMessage(
-                                messageOriginalKey.remoteJid,
-                                messageOriginalKey.id
-                            )
 
                             const payload = {
                                 ...messageCtx,
                                 body: pollMessage.find((poll) => poll.voters.length > 0)?.name || '',
                                 from: baileyCleanNumber(key.remoteJid, true),
-                                pushName: messageOriginal?.pushName,
-                                broadcast: messageOriginal?.broadcast,
-                                messageTimestamp: messageOriginal?.messageTimestamp,
                                 voters: pollCreation,
                                 type: 'poll',
                             }
