@@ -5,11 +5,11 @@ import { IStickerOptions } from 'wa-sticker-formatter'
 import fs from 'fs'
 import mime from 'mime-types'
 import { utils } from '@builderbot/bot'
-import { makeInMemoryStore, useMultiFileAuthState } from '@whiskeysockets/baileys'
+import { makeInMemoryStore, useMultiFileAuthState } from 'baileys'
 
 const phoneNumber = '+123456789'
 
-jest.mock('@whiskeysockets/baileys', () => ({
+jest.mock('baileys', () => ({
     downloadMediaMessage: jest.fn(),
     proto: {
         Message: {
@@ -140,30 +140,15 @@ describe('#BaileysProvider', () => {
     })
 
     describe('#getMessage', () => {
-        test('should return undefined when store is not present', async () => {
+        test('should return empty message object', async () => {
             // Arrange
             const mockedKey = { remoteJid: 'exampleRemoteJid', id: 'exampleId' }
-            provider.store = null as any
+
             // Act
             const result = await provider['getMessage'](mockedKey)
 
             // Assert
             expect(result).toEqual({})
-        })
-
-        test('should return message when store is present', async () => {
-            // Arrange
-            const mockedKey = { remoteJid: 'exampleRemoteJid', id: 'exampleId' }
-            provider.store = {
-                loadMessage: jest.fn(),
-            } as any
-
-            // Act
-            const result = await provider['getMessage'](mockedKey)
-
-            // Assert
-            expect(result).toBeUndefined()
-            expect(provider?.store?.loadMessage).toHaveBeenCalledWith(mockedKey.remoteJid, mockedKey.id)
         })
     })
 
@@ -1097,14 +1082,21 @@ describe('#BaileysProvider', () => {
                 },
                 update: mockPollUpdate,
             }
-            provider.store = {
-                loadMessage: jest.fn(),
-            } as any
-            // Act
-            await provider['busEvents']()[1].func([mockMessage])
 
-            // Assert
-            expect(provider.emit).toHaveBeenCalled()
+            // Mock getAggregateVotesInPollMessage
+            const originalGetAggregateVotes = require('baileys').getAggregateVotesInPollMessage
+            require('baileys').getAggregateVotesInPollMessage = jest.fn().mockReturnValue({})
+
+            try {
+                // Act
+                await provider['busEvents']()[1].func([mockMessage])
+
+                // Assert
+                expect(provider.emit).toHaveBeenCalled()
+            } finally {
+                // Restore original function
+                require('baileys').getAggregateVotesInPollMessage = originalGetAggregateVotes
+            }
         })
     })
 
@@ -1129,17 +1121,18 @@ describe('#BaileysProvider', () => {
     })
 
     describe('#initVendor', () => {
-        test('should initialize store when useBaileysStore is true', async () => {
+        test('should initialize when useBaileysStore is true', async () => {
             // Arrange
             jest.spyOn(fs, 'existsSync').mockReturnValueOnce(true)
             provider.globalVendorArgs.usePairingCode = true
             provider.globalVendorArgs.phoneNumber = phoneNumber
+
             // Act
             await provider['initVendor']()
 
             // Assert
             expect(useMultiFileAuthState).toHaveBeenCalled()
-            expect(makeInMemoryStore).toHaveBeenCalled()
+            // Store is no longer used, so we don't check for makeInMemoryStore
         })
     })
 })
