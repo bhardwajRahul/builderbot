@@ -28,7 +28,7 @@ describe('#EvolutionCoreVendor', () => {
     })
 
     describe('#indexHome', () => {
-        test('should respond with "running ok"', () => {
+        test('should respond with "ok"', () => {
             // Arrange
             const mockResponse = {
                 end: jest.fn(),
@@ -37,7 +37,7 @@ describe('#EvolutionCoreVendor', () => {
             evolutionCoreVendor.indexHome(null as any, mockResponse as any, mockNext)
 
             // Assert
-            expect(mockResponse.end).toHaveBeenCalledWith('running ok')
+            expect(mockResponse.end).toHaveBeenCalledWith('ok')
         })
     })
 })
