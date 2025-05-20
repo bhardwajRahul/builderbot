@@ -83,7 +83,6 @@ export class EvolutionCoreVendor extends EventEmitter {
                         const { message } = data
                         const from = cleanJid(data.key?.remoteJid)
                         const name = data.pushName
-                        const media_url = message.mediaUrl
                         let responseObj: Record<string, any> | null = null
 
                         if (message.documentMessage) {
@@ -94,7 +93,7 @@ export class EvolutionCoreVendor extends EventEmitter {
                                 body: generateRefProvider('_event_document_'),
                                 name,
                                 caption: message.documentMessage.caption,
-                                media_url,
+                                base64: message.base64,
                             }
                         } else if (message.videoMessage) {
                             responseObj = {
@@ -103,8 +102,8 @@ export class EvolutionCoreVendor extends EventEmitter {
                                 mimetype: message.videoMessage.mimetype,
                                 body: generateRefProvider('_event_media_'),
                                 name,
-                                media_url,
                                 caption: message.videoMessage.caption || '',
+                                base64: message.base64,
                             }
                         } else if (message.imageMessage) {
                             responseObj = {
@@ -113,8 +112,8 @@ export class EvolutionCoreVendor extends EventEmitter {
                                 mimetype: message.imageMessage.mimetype,
                                 body: generateRefProvider('_event_media_'),
                                 name,
-                                media_url,
                                 caption: message.imageMessage.caption || '',
+                                base64: message.base64,
                             }
                         } else if (message.audioMessage) {
                             responseObj = {
@@ -123,8 +122,8 @@ export class EvolutionCoreVendor extends EventEmitter {
                                 mimetype: message.audioMessage.mimetype,
                                 body: generateRefProvider('_event_voice_note_'),
                                 name,
-                                media_url,
                                 caption: message.audioMessage.caption || '',
+                                base64: message.base64,
                             }
                         } else if (message.locationMessage || message.liveLocationMessage) {
                             responseObj = {

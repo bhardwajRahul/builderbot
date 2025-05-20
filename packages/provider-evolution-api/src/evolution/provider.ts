@@ -1,17 +1,20 @@
 import { ProviderClass } from '@builderbot/bot'
 import type { Vendor } from '@builderbot/bot/dist/provider/interface/provider'
 import type { BotContext, SendOptions } from '@builderbot/bot/dist/types'
+import { json } from '@polka/parse'
 import axios from 'axios'
 import { ParamsDictionary } from 'express-serve-static-core'
 import fs from 'fs'
+import { writeFile } from 'fs/promises'
 import mime from 'mime-types'
-import path from 'path'
+import { tmpdir } from 'os'
+import path, { join, basename, resolve } from 'path'
 import { Middleware } from 'polka'
 import { ParsedQs } from 'qs'
 import Queue from 'queue-promise'
 
 import type { EvolutionInterface } from '../interface/evolution'
-import type { EvolutionGlobalVendorArgs } from '../types'
+import type { EvolutionGlobalVendorArgs, SaveFileOptions } from '../types'
 import { generalDownload } from '../utils'
 import { EvolutionCoreVendor } from './core'
 
@@ -58,6 +61,7 @@ class EvolutionProvider extends ProviderClass<EvolutionInterface> implements Evo
      */
     protected beforeHttpServerInit(): void {
         this.server = this.server
+            .use(json())
             .use((req, _, next) => {
                 req['globalVendorArgs'] = this.globalVendorArgs
                 return next()
@@ -71,7 +75,9 @@ class EvolutionProvider extends ProviderClass<EvolutionInterface> implements Evo
      */
     protected initVendor(): Promise<any> {
         const vendor = new EvolutionCoreVendor(this.queue)
+
         this.server = this.server
+            .use(json())
             .use((req, _, next) => {
                 req['globalVendorArgs'] = this.globalVendorArgs
                 return next()
@@ -339,8 +345,17 @@ class EvolutionProvider extends ProviderClass<EvolutionInterface> implements Evo
         return this.sendText(number, message)
     }
 
-    saveFile(ctx: any, options?: { path: string }): Promise<string> {
-        throw new Error('Method not implemented.')
+    saveFile = async (ctx: Partial<BotContext>, options: SaveFileOptions = {}): Promise<string> => {
+        try {
+            const buffer = ctx.base64
+            const extension = mime.extension(ctx.mimetype) as string
+            const fileName = `file-${Date.now()}.${extension}`
+            const pathFile = join(options?.path ?? tmpdir(), fileName)
+            await writeFile(pathFile, buffer)
+            return resolve(pathFile)
+        } catch (error) {
+            return Promise.reject(error)
+        }
     }
 }
 
