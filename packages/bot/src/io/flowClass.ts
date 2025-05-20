@@ -1,5 +1,5 @@
-import { toSerialize } from './methods/toSerialize'
 import type { TContext, TFlow } from '../types'
+import { toSerialize } from './methods/toSerialize'
 import flatObject from '../utils/flattener'
 
 /**

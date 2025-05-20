@@ -1,6 +1,6 @@
-import { ProviderClass } from './interface/provider'
 import type { ProviderEventTypes } from '../types'
 import { delay } from '../utils'
+import { ProviderClass } from './interface/provider'
 
 class TestProvider extends ProviderClass {
     protected afterHttpServerInit(): void {}

@@ -86,10 +86,16 @@ export class TwilioCoreVendor extends EventEmitter {
     public handlerLocalMedia: polka.Middleware = (req, res) => {
         const query = req.query as { path?: string }
         const file = query?.path
-        if (!file) return res.end(`path: invalid`)
+        if (!file) {
+            res.end(`path: invalid`)
+            return
+        }
         const decryptPath = utils.decryptData(file)
         const decodeFile = decodeURIComponent(decryptPath)
-        if (!existsSync(decodeFile)) return res.end(`not exits: ${decodeFile}`)
+        if (!existsSync(decodeFile)) {
+            res.end(`not exits: ${decodeFile}`)
+            return
+        }
         const fileStream = createReadStream(decodeFile)
         const mimeType = mime.lookup(decodeFile) || 'application/octet-stream'
         res.writeHead(200, { 'Content-Type': mimeType })

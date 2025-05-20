@@ -5,7 +5,7 @@ import { IStickerOptions } from 'wa-sticker-formatter'
 import fs from 'fs'
 import mime from 'mime-types'
 import { utils } from '@builderbot/bot'
-import { makeInMemoryStore, useMultiFileAuthState } from 'baileys'
+import { useMultiFileAuthState } from 'baileys'
 
 const phoneNumber = '+123456789'
 
