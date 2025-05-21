@@ -16,6 +16,52 @@ export interface SaveFileOptions {
     path?: string
 }
 
+/**
+ * Possible types of media to send
+ */
+export type MediaType = 'image' | 'video' | 'audio' | 'document'
+
+/**
+ * Base message structure for API requests
+ */
+interface BaseMessage {
+    number: string
+    delay: number
+}
+
+/**
+ * Structure for text messages
+ */
+export interface TextMessage extends BaseMessage {
+    text: string
+}
+
+/**
+ * Structure for media messages
+ */
+export interface MediaMessage extends BaseMessage {
+    media: string
+    mimetype: string
+    mediatype: MediaType
+    caption?: string
+    fileName?: string
+}
+
+/**
+ * Standard API response structure
+ */
+export interface ApiResponse {
+    key?: {
+        remoteJid?: string
+        fromMe?: boolean
+        id?: string
+    }
+    status?: string
+    message?: string
+    error?: boolean
+    [key: string]: any
+}
+
 // Provider configuration
 export interface EvolutionGlobalVendorArgs extends GlobalVendorArgs {
     participant?: string
