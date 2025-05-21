@@ -80,10 +80,8 @@ export class EvolutionCoreVendor extends EventEmitter {
                 return
             }
 
-            console.log(' body', JSON.stringify(req.body, null, 2))
-            
             const { event, data }: { event: IncomingEvent; data: RawMessage } = req.body
-            
+
             if (!req.body) {
                 res.statusCode = 400
                 res.end('Invalid request body')
