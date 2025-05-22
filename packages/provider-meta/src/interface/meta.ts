@@ -49,4 +49,5 @@ export interface MetaInterface {
     saveFile: (ctx: Partial<Message & BotContext>, options?: SaveFileOptions) => Promise<string>
     sendFile: (to: string, mediaInput: string | null, caption: string, context: string | null) => Promise<any>
     sendAudio: (to: string, fileOpus: string, context: string | null) => void
+    markAsRead: (wa_id: string) => Promise<any>
 }

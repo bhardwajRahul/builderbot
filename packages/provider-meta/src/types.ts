@@ -147,8 +147,8 @@ export interface ParsedContact {
 
 export interface TextMessageBody {
     messaging_product: string
-    to: string
-    type: string
+    to?: string
+    type?: string
     recipient_type?: string
     text?: {
         preview_url: boolean
@@ -160,8 +160,12 @@ export interface TextMessageBody {
     document?: File
     interactive?: any
     contacts?: any[]
-    context?: string
+    context?: {
+        message_id: string
+    }
     template?: TemplateMessage
+    status?: string
+    message_id?: string
 }
 
 export interface Reaction {
