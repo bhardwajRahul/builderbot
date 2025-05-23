@@ -566,7 +566,7 @@ importers:
                 specifier: ^0.5.7
                 version: 0.5.7
             baileys:
-                specifier: ~6.7.16
+                specifier: ~6.7.17
                 version: 6.7.17(bufferutil@4.0.9)(eslint@8.57.1)(sharp@0.33.3)(typescript@5.8.3)(utf-8-validate@5.0.10)
             fluent-ffmpeg:
                 specifier: ^2.1.2

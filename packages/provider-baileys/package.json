@@ -61,7 +61,7 @@
     "@adiwajshing/keyed-db": "^0.2.4",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@types/polka": "^0.5.7",
-    "baileys": "~6.7.16",
+    "baileys": "~6.7.17",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^11.2.0",
     "node-cache": "^5.1.2"

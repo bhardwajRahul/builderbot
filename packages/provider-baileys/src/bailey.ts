@@ -45,7 +45,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
         name: `bot`,
         gifPlayback: false,
         usePairingCode: false,
-        browser: ['Windows', 'Google Chrome', '10.0.0.1'],
+        browser: ['Windows', 'Chrome', 'Chrome 114.0.5735.198'],
         phoneNumber: null,
         useBaileysStore: true,
         port: 3000,

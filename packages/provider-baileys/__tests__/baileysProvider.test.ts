@@ -73,7 +73,7 @@ describe('#BaileysProvider', () => {
             name: 'test-bot',
             gifPlayback: true,
             usePairingCode: true,
-            browser: ['Windows', 'Google Chrome', '10.0.0.1'],
+            browser: ['Windows', 'Chrome', 'Chrome 114.0.5735.198'],
             phoneNumber: '+123456789',
             useBaileysStore: true,
             port: 3001,
