@@ -96,7 +96,7 @@ describe('#BaileysProvider', () => {
             name: 'bot',
             gifPlayback: false,
             usePairingCode: false,
-            browser: ['Windows', 'Google Chrome', '10.0.0.1'],
+            browser: ['Windows', 'Chrome', 'Chrome 114.0.5735.198'],
             timeRelease: 0,
             phoneNumber: null,
             useBaileysStore: true,
@@ -106,6 +106,7 @@ describe('#BaileysProvider', () => {
             autoRefresh: 0,
             writeMyself: 'none',
             experimentalStore: false,
+            experimentalSyncMessage: undefined,
         }
         // Act
         const baileysProvider = new BaileysProvider({})
