@@ -198,7 +198,7 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
                 caption,
             },
         }
-        if (context) body.context = context
+        if (context) body.context = { message_id: context }
         return this.sendMessageMeta(body)
     }
 
@@ -214,7 +214,7 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
                 caption,
             },
         }
-        if (context) body.context = context
+        if (context) body.context = { message_id: context }
         return this.sendMessageMeta(body)
     }
 
@@ -250,7 +250,7 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
                 caption,
             },
         }
-        if (context) body.context = context
+        if (context) body.context = { message_id: context }
         return this.sendMessageMeta(body)
     }
 
@@ -266,7 +266,7 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
                 caption,
             },
         }
-        if (context) body.context = context
+        if (context) body.context = { message_id: context }
         return this.sendMessageMeta(body)
     }
 
@@ -575,7 +575,7 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
                 caption,
             },
         }
-        if (context) body.context = context
+        if (context) body.context = { message_id: context }
         return this.sendMessageMeta(body)
     }
 
@@ -619,7 +619,7 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
                 id: mediaId,
             },
         }
-        if (context) body.context = context
+        if (context) body.context = { message_id: context }
         return this.sendMessageMeta(body)
     }
 
@@ -695,7 +695,7 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
         return this.sendMessageMeta(body)
     }
 
-    sendText = async (to: string, message: string, context = null) => {
+    sendText = async (to: string, message: string, context = null, preview_url: boolean = false) => {
         to = parseMetaNumber(to)
         const body: TextMessageBody = {
             messaging_product: 'whatsapp',
@@ -703,11 +703,20 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
             to,
             type: 'text',
             text: {
-                preview_url: false,
+                preview_url,
                 body: message,
             },
         }
-        if (context) body.context = context
+        if (context) body.context = { message_id: context }
+        return this.sendMessageMeta(body)
+    }
+
+    markAsRead = async (wa_id: string) => {
+        const body = {
+            messaging_product: 'whatsapp',
+            status: 'read',
+            message_id: wa_id,
+        }
         return this.sendMessageMeta(body)
     }
 
@@ -722,7 +731,6 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
 
     sendMessageToApi = async (body: TextMessageBody): Promise<any> => {
         body.to = this.fixPrefixMetaNumber(body.to)
-
         try {
             const fullUrl = `${URL}/${this.globalVendorArgs.version}/${this.globalVendorArgs.numberId}/messages`
             const response = await axios.post(fullUrl, body, {
@@ -733,8 +741,7 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
             response.data.payload = body
             return response.data
         } catch (error) {
-            console.error(error.message)
-            throw error
+            return error
         }
     }
 }
