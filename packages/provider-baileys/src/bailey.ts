@@ -36,10 +36,6 @@ import { releaseTmp } from './releaseTmp'
 import type { BaileyGlobalVendorArgs } from './type'
 import { baileyGenerateImage, baileyCleanNumber, baileyIsValidNumber, emptyDirSessions } from './utils'
 
-const logger = new Console({
-    stdout: createWriteStream(`${process.cwd()}/baileys.log`),
-})
-
 class BaileysProvider extends ProviderClass<WASocket> {
     public globalVendorArgs: BaileyGlobalVendorArgs = {
         name: `bot`,
@@ -59,14 +55,98 @@ class BaileysProvider extends ProviderClass<WASocket> {
     }
 
     msgRetryCounterCache?: NodeCache
+    userDevicesCache?: NodeCache
+
+    private logger: Console
+    private logStream: NodeJS.WritableStream
 
     private idsDuplicates = []
     private mapSet = new Set()
 
     constructor(args: Partial<BaileyGlobalVendorArgs>) {
         super()
-        this.msgRetryCounterCache = new NodeCache()
+
+        this.logStream = createWriteStream(`${process.cwd()}/baileys.log`, {
+            flags: 'a',
+            autoClose: true,
+            emitClose: true,
+        })
+
+        this.logger = new Console({
+            stdout: this.logStream,
+            stderr: this.logStream,
+        })
+
+        this.msgRetryCounterCache = new NodeCache({
+            stdTTL: 1800, // 30 minutos (más tiempo para reintentos)
+            checkperiod: 300, // Limpieza cada 5 minutos (menos frecuente)
+            maxKeys: 50000, // 50K entradas (más espacio)
+            deleteOnExpire: true,
+            useClones: false,
+            forceString: false,
+            errorOnMissing: false,
+        })
+
+        this.userDevicesCache = new NodeCache({
+            stdTTL: 7200, // 2 horas (dispositivos cambian poco)
+            checkperiod: 600, // Limpieza cada 10 minutos
+            maxKeys: 5000, // Más dispositivos
+            deleteOnExpire: true,
+            useClones: false,
+            forceString: false,
+            errorOnMissing: false,
+        })
+
         this.globalVendorArgs = { ...this.globalVendorArgs, ...args }
+
+        this.setupCleanupHandlers()
+    }
+
+    private setupCleanupHandlers() {
+        const cleanup = () => {
+            this.logger.log(`[${new Date().toISOString()}] Iniciando limpieza de recursos...`)
+            this.cleanup()
+        }
+
+        process.on('SIGINT', cleanup)
+        process.on('SIGTERM', cleanup)
+        process.on('SIGUSR1', cleanup)
+        process.on('SIGUSR2', cleanup)
+
+        process.on('uncaughtException', (error) => {
+            this.logger.log(`[${new Date().toISOString()}] Uncaught Exception:`, error)
+            this.cleanup()
+            process.exit(1)
+        })
+
+        process.on('unhandledRejection', (reason, promise) => {
+            this.logger.log(`[${new Date().toISOString()}] Unhandled Rejection at:`, promise, 'reason:', reason)
+        })
+    }
+
+    private cleanup() {
+        try {
+            if (this.msgRetryCounterCache) {
+                this.msgRetryCounterCache.close()
+                this.msgRetryCounterCache = undefined
+            }
+
+            if (this.userDevicesCache) {
+                this.userDevicesCache.close()
+                this.userDevicesCache = undefined
+            }
+
+            this.mapSet.clear()
+            this.idsDuplicates.length = 0
+
+            if (this.logStream && typeof this.logStream.end === 'function') {
+                this.logStream.end()
+            }
+
+            this.logger.log(`[${new Date().toISOString()}] Recursos limpiados correctamente`)
+        } catch (error) {
+            console.error('Error durante cleanup:', error)
+        }
     }
 
     public async releaseSessionFiles() {
@@ -134,7 +214,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
                 }
             }
         } catch (e) {
-            logger.log(e)
+            this.logger.log(e)
             this.initVendor().then((v) => this.listenOnEvents(v))
         }
 
@@ -259,7 +339,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
 
             return sock.ev
         } catch (e) {
-            logger.log(e)
+            this.logger.log(e)
             this.emit('auth_failure', [
                 `Something unexpected has occurred, do not panic`,
                 `Restart the BOT`,
@@ -290,7 +370,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
                             await this.vendor.readMessages([_messageCtx?.key])
                             await this.vendor.sendMessage(jid, { text: this.globalVendorArgs.experimentalSyncMessage })
                         } catch (e) {
-                            logger.log(e)
+                            this.logger.log(e)
                         }
                     }
                 }
@@ -448,8 +528,6 @@ class BaileysProvider extends ProviderClass<WASocket> {
                             ) {
                                 continue
                             }
-
-                            const messageOriginalKey = messageCtx?.update?.pollUpdates[0]?.pollUpdateMessageKey
 
                             const payload = {
                                 ...messageCtx,
