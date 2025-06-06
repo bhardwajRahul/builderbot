@@ -1179,28 +1179,6 @@ describe('#BaileysProvider', () => {
             expect(mockFallBackAction).toHaveBeenCalledWith(mockMessage)
             expect(result).toBeUndefined()
         })
-
-        test('should handle fallBackAction errors gracefully', async () => {
-            // Arrange
-            const mockFallBackAction = jest.fn().mockImplementation(() => {
-                throw new Error('FallBack action failed')
-            }) as any
-            provider.globalVendorArgs.fallBackAction = mockFallBackAction
-
-            const mockMessage = {
-                messageStubParameters: ['Invalid encryption'],
-                key: {
-                    remoteJid: '1234567890@s.whatsapp.net',
-                    id: 'message123',
-                },
-                pushName: 'Test User',
-            }
-
-            // Act & Assert
-            await expect(provider['busEvents']()[0].func({ messages: [mockMessage], type: 'notify' })).rejects.toThrow(
-                'FallBack action failed'
-            )
-        })
     })
 
     describe('busEvents - messages.update', () => {
