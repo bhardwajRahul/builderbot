@@ -53,6 +53,13 @@ class CoreClass<P extends ProviderClass = any, D extends MemoryDB = any> extends
         host: undefined,
     }
 
+    /**
+     * @description
+     * - Setup flowClass
+     * - Setup database
+     * - Setup provider
+     * - Setup generalArgs
+     */
     constructor(_flow: any, _database: D, _provider: P, _args: GeneralArgs) {
         super()
         this.flowClass = _flow
@@ -753,6 +760,7 @@ class CoreClass<P extends ProviderClass = any, D extends MemoryDB = any> extends
                       dispatch: DispatchFn
                       state: (number: string) => BotStateStandAlone
                       globalState: () => BotStateGlobal
+                      emit: (eventName: string, ...args: any[]) => void
                   })
                 | undefined,
             req: any,
