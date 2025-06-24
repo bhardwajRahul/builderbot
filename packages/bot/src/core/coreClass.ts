@@ -760,7 +760,7 @@ class CoreClass<P extends ProviderClass = any, D extends MemoryDB = any> extends
                       dispatch: DispatchFn
                       state: (number: string) => BotStateStandAlone
                       globalState: () => BotStateGlobal
-                      emit: (eventName: string, ...args: any[]) => void
+                      emit: (eventName: string, args: Record<string, any> & { from: string }) => void
                   })
                 | undefined,
             req: any,

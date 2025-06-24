@@ -275,6 +275,7 @@ export type BotCtxMiddlewareOptions = {
     dispatch: DispatchFn
     state: (number: string) => BotStateStandAlone
     globalState: () => BotStateGlobal
+    emit: (eventName: string, args: Record<string, any> & { from: string }) => void
 }
 
 export type BotCtxMiddleware<P = ProviderClass> = Partial<P & BotCtxMiddlewareOptions>
