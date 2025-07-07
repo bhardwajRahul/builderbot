@@ -1,5 +1,5 @@
 {
-  "version": "1.2.10-y.0",
+  "version": "1.2.10-y.1",
   "packages": [
     "packages/bot",
     "packages/cli",
