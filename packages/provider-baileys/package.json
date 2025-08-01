@@ -6,10 +6,17 @@
   "author": "Leifer Mendez <leifer33@gmail.com>",
   "license": "ISC",
   "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
-    "build": "rimraf dist && rollup --config",
+    "build": "rimraf dist && rollup --config --bundleConfigAsCjs",
     "test": "jest --forceExit",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watchAll --coverage"
@@ -62,7 +69,6 @@
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@leifermendez/baileys": "^6.7.18",
     "@types/polka": "^0.5.7",
-    "baileys": "^6.7.18",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^11.2.0",
     "node-cache": "^5.1.2"

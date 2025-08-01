@@ -11,15 +11,19 @@ export default {
             format: 'cjs',
             exports: 'named',
         },
+        {
+            dir: 'dist',
+            entryFileNames: '[name].js',
+            format: 'es',
+            exports: 'named',
+        },
     ],
     plugins: [
         json(),
         commonjs(),
         nodeResolve({
             resolveOnly: (module) =>
-                !/ffmpeg|baileys|@adiwajshing|link-preview-js|@builderbot\/bot|sharp|@leifermendez\/baileys/i.test(
-                    module
-                ),
+                !/ffmpeg|baileys|@adiwajshing|link-preview-js|@builderbot\/bot|sharp/i.test(module),
         }),
         typescript(),
         // terser()

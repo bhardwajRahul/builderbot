@@ -1195,8 +1195,8 @@ describe('#BaileysProvider', () => {
             }
 
             // Mock getAggregateVotesInPollMessage
-            const originalGetAggregateVotes = require('baileys').getAggregateVotesInPollMessage
-            require('baileys').getAggregateVotesInPollMessage = jest.fn().mockReturnValue({})
+            const originalGetAggregateVotes = require('@leifermendez/baileys').getAggregateVotesInPollMessage
+            require('@leifermendez/baileys').getAggregateVotesInPollMessage = jest.fn().mockReturnValue({})
 
             try {
                 // Act
@@ -1206,7 +1206,7 @@ describe('#BaileysProvider', () => {
                 expect(provider.emit).toHaveBeenCalled()
             } finally {
                 // Restore original function
-                require('baileys').getAggregateVotesInPollMessage = originalGetAggregateVotes
+                require('@leifermendez/baileys').getAggregateVotesInPollMessage = originalGetAggregateVotes
             }
         })
     })

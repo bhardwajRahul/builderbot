@@ -1,5 +1,5 @@
 import type { GlobalVendorArgs } from '@builderbot/bot/dist/types'
-import { proto } from 'baileys'
+import { proto } from '@leifermendez/baileys'
 
 export interface BaileyGlobalVendorArgs extends GlobalVendorArgs {
     gifPlayback: boolean
