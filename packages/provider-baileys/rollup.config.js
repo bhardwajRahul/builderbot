@@ -17,7 +17,9 @@ export default {
         commonjs(),
         nodeResolve({
             resolveOnly: (module) =>
-                !/ffmpeg|baileys|@adiwajshing|link-preview-js|@builderbot\/bot|sharp/i.test(module),
+                !/ffmpeg|baileys|@adiwajshing|link-preview-js|@builderbot\/bot|sharp|@leifermendez\/baileys/i.test(
+                    module
+                ),
         }),
         typescript(),
         // terser()

@@ -67,8 +67,5 @@
     "fs-extra": "^11.2.0",
     "node-cache": "^5.1.2"
   },
-  "exports": {
-    "baileys": "./baileys"
-  },
   "gitHead": "5994ea7d4f64bc28aee8136f85c067ee21415168"
 }
