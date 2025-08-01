@@ -10,12 +10,14 @@ export default {
             entryFileNames: '[name].cjs',
             format: 'cjs',
             exports: 'named',
+            preserveModules: false,
         },
         {
             dir: 'dist',
             entryFileNames: '[name].js',
             format: 'es',
             exports: 'named',
+            preserveModules: false,
         },
     ],
     plugins: [
