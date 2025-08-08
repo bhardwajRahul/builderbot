@@ -290,16 +290,21 @@ class CoreClass<P extends ProviderClass = any, D extends MemoryDB = any> extends
             const listIdsRefCallbacks = messageToSend.map((i: { ref: string }) => i.ref)
             const listProcessWait = this.queuePrincipal.getIdsCallback(from)
 
+            // Registrar/actualizar el conjunto de IDs que están en curso para este "from"
             if (!listProcessWait.length) {
                 this.queuePrincipal.setIdsCallbacks(from, listIdsRefCallbacks)
-            } else {
-                const lastMessage = messageToSend[messageToSend.length - 1]
-                await this.database.save({ ...lastMessage, from: numberOrId })
-
-                if (listProcessWait.includes(lastMessage.ref)) {
-                    this.queuePrincipal.clearQueue(from)
-                }
+                return
             }
+
+            // Si ya hay una lista en proceso, actualizamos la referencia
+            this.queuePrincipal.setIdsCallbacks(from, listIdsRefCallbacks)
+
+            // Guardamos el último mensaje como hacía la implementación previa para conservar historial
+            const lastMessage = messageToSend[messageToSend.length - 1]
+            await this.database.save({ ...lastMessage, from: numberOrId })
+
+            // Evitamos limpiar agresivamente toda la cola; los duplicados se gestionan en la propia cola
+            return
         }
 
         const enqueueMsg = async (numberOrId: string, ctxMessage: TContext, from: string) => {
