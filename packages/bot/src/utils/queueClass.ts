@@ -159,7 +159,8 @@ class Queue<T> {
                 for (const item of queueByFrom) {
                     item.cancelled = true
                     this.clearAndDone(from, item)
-                    item.reject('Queue cleared')
+                    // Resolver silenciosamente las tareas pendientes al limpiar la cola
+                    item.resolve('success' as unknown as T)
                 }
             } finally {
                 this.queue.set(from, [])
@@ -175,7 +176,8 @@ class Queue<T> {
             if (workingByFrom) {
                 this.workingOnPromise.set(from, false)
             }
-            return queueByFrom.length
+            // Después de limpiar, no quedan elementos en cola.
+            return 0
         }
         return 0
     }
