@@ -563,8 +563,8 @@ importers:
                 specifier: ^1.1.0
                 version: 1.1.0
             '@leifermendez/baileys':
-                specifier: ^6.7.19
-                version: 6.7.19(bufferutil@4.0.9)(sharp@0.33.3)(utf-8-validate@5.0.10)
+                specifier: ^6.7.20
+                version: 6.7.20(bufferutil@4.0.9)(sharp@0.33.3)(utf-8-validate@5.0.10)
             '@types/polka':
                 specifier: ^0.5.7
                 version: 0.5.7
@@ -2478,10 +2478,10 @@ packages:
             }
         hasBin: true
 
-    '@leifermendez/baileys@6.7.19':
+    '@leifermendez/baileys@6.7.20':
         resolution:
             {
-                integrity: sha512-CZIpjHFCD1zdylxtfI4/o0/6DqOfldOLwC+hMjGYrwxJYnJ2Hke2RIJ1+B0JqR8Yb3C9ArwsGLS0NychSwFIBQ==,
+                integrity: sha512-t9Yq4lIM5PE14fTHWb0+cNVpvrWUruM13f/AOwDiR9Q27WmrkrDLqvSvTYR9F2hBwcu9RPcP1UQ0TGp3n+an2w==,
             }
         engines: { node: '>=20.0.0' }
         peerDependencies:
@@ -16066,7 +16066,7 @@ snapshots:
         dependencies:
             commander: 9.5.0
 
-    '@leifermendez/baileys@6.7.19(bufferutil@4.0.9)(sharp@0.33.3)(utf-8-validate@5.0.10)':
+    '@leifermendez/baileys@6.7.20(bufferutil@4.0.9)(sharp@0.33.3)(utf-8-validate@5.0.10)':
         dependencies:
             '@cacheable/node-cache': 1.5.5
             '@hapi/boom': 9.1.4
