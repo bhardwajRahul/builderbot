@@ -244,8 +244,8 @@ importers:
     packages/contexts-dialogflow:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             '@google-cloud/dialogflow':
                 specifier: ^6.5.0
                 version: 6.14.0(encoding@0.1.13)
@@ -284,8 +284,8 @@ importers:
     packages/contexts-dialogflow-cx:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             '@google-cloud/dialogflow-cx':
                 specifier: ^4.4.0
                 version: 4.10.0(encoding@0.1.13)
@@ -324,8 +324,8 @@ importers:
     packages/create-builderbot:
         dependencies:
             '@builderbot/cli':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
         devDependencies:
             '@rollup/plugin-commonjs':
                 specifier: ^25.0.7
@@ -349,8 +349,8 @@ importers:
     packages/database-json:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
         devDependencies:
             '@rollup/plugin-commonjs':
                 specifier: ^25.0.7
@@ -383,8 +383,8 @@ importers:
     packages/database-mongo:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             mongodb:
                 specifier: ^4.17.2
                 version: 4.17.2
@@ -429,8 +429,8 @@ importers:
     packages/database-mysql:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             mysql2:
                 specifier: ^2.3.3
                 version: 2.3.3
@@ -472,8 +472,8 @@ importers:
     packages/database-postgres:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             pg:
                 specifier: ^8.11.5
                 version: 8.16.0
@@ -563,8 +563,8 @@ importers:
                 specifier: ^1.1.0
                 version: 1.1.0
             '@leifermendez/baileys':
-                specifier: ^6.7.20
-                version: 6.7.20(bufferutil@4.0.9)(sharp@0.33.3)(utf-8-validate@5.0.10)
+                specifier: ^6.7.24
+                version: 6.7.24(bufferutil@4.0.9)(sharp@0.33.3)(utf-8-validate@5.0.10)
             '@types/polka':
                 specifier: ^0.5.7
                 version: 0.5.7
@@ -691,8 +691,8 @@ importers:
                 version: 2.2.1
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             '@jest/globals':
                 specifier: ^29.7.0
                 version: 29.7.0
@@ -788,8 +788,8 @@ importers:
                 version: 2.2.1
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             '@jest/globals':
                 specifier: ^29.7.0
                 version: 29.7.0
@@ -861,8 +861,8 @@ importers:
                 version: 2.26.22
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             '@hapi/boom':
                 specifier: ^10.0.1
                 version: 10.0.1
@@ -919,8 +919,8 @@ importers:
                 version: 4.20.1
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             '@jest/globals':
                 specifier: ^29.7.0
                 version: 29.7.0
@@ -992,8 +992,8 @@ importers:
                 version: 5.1.0(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10)
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             '@jest/globals':
                 specifier: ^29.7.0
                 version: 29.7.0
@@ -1074,8 +1074,8 @@ importers:
                 version: 1.23.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             '@jest/globals':
                 specifier: ^29.7.0
                 version: 29.7.0
@@ -1150,8 +1150,8 @@ importers:
                 version: 0.33.3
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.2.10-2.3
-                version: 1.2.10-y.2
+                specifier: ^1.3.1
+                version: 1.3.1
             '@rollup/plugin-commonjs':
                 specifier: ^25.0.7
                 version: 25.0.8(rollup@4.41.0)
@@ -1694,16 +1694,16 @@ packages:
                 integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==,
             }
 
-    '@builderbot/bot@1.2.10-y.2':
+    '@builderbot/bot@1.3.1':
         resolution:
             {
-                integrity: sha512-edDP8vpzSD3gBxBzaGHdzeHzRwtVwCzsQz8ApVlFHhwcTSsfezWAD1bp03v2tqUqEWkyOoHX7Y2KnJK5hPnYfQ==,
+                integrity: sha512-5lSC+/s7gwnEN98TWArsCYkNWNDDg2BjD1faLDVLJa0E7bLxjUi+ST7vZV/my4CuOBoLk/j6qtCARW+HVv60oA==,
             }
 
-    '@builderbot/cli@1.2.10-y.2':
+    '@builderbot/cli@1.3.1':
         resolution:
             {
-                integrity: sha512-7/AddcXWtzk9m6tdhvj3s1CqhjvHb2GaQkIN592nl0kjFdCR2u8X4hH3ydJu+XaGCjGAZdQJQ9tQmfPeDJZZKA==,
+                integrity: sha512-BT0h6dVsUBXRezHrV265sayeHysnsUSqw5EtyrNVpwcojNJxwH3N3sYjUsal6Zz8UCtnxl7k7r0is/U7J5tJ6g==,
             }
         hasBin: true
 
@@ -2478,10 +2478,10 @@ packages:
             }
         hasBin: true
 
-    '@leifermendez/baileys@6.7.20':
+    '@leifermendez/baileys@6.7.24':
         resolution:
             {
-                integrity: sha512-t9Yq4lIM5PE14fTHWb0+cNVpvrWUruM13f/AOwDiR9Q27WmrkrDLqvSvTYR9F2hBwcu9RPcP1UQ0TGp3n+an2w==,
+                integrity: sha512-10XLKvOUust8peZSNUfBJtopzck92fBjtfBgcm3K6JiRrzQKp3mpp7T0Pt8ByMyZsc+1mR8JRkvuuu3YP6Sq+g==,
             }
         engines: { node: '>=20.0.0' }
         peerDependencies:
@@ -15480,7 +15480,7 @@ snapshots:
 
     '@bcoe/v8-coverage@0.2.3': {}
 
-    '@builderbot/bot@1.2.10-y.2':
+    '@builderbot/bot@1.3.1':
         dependencies:
             '@ffmpeg-installer/ffmpeg': 1.1.0
             body-parser: 1.20.3
@@ -15496,7 +15496,7 @@ snapshots:
             - debug
             - supports-color
 
-    '@builderbot/cli@1.2.10-y.2': {}
+    '@builderbot/cli@1.3.1': {}
 
     '@cacheable/node-cache@1.5.5':
         dependencies:
@@ -16066,7 +16066,7 @@ snapshots:
         dependencies:
             commander: 9.5.0
 
-    '@leifermendez/baileys@6.7.20(bufferutil@4.0.9)(sharp@0.33.3)(utf-8-validate@5.0.10)':
+    '@leifermendez/baileys@6.7.24(bufferutil@4.0.9)(sharp@0.33.3)(utf-8-validate@5.0.10)':
         dependencies:
             '@cacheable/node-cache': 1.5.5
             '@hapi/boom': 9.1.4
