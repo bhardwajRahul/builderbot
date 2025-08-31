@@ -244,7 +244,7 @@ importers:
     packages/contexts-dialogflow:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             '@google-cloud/dialogflow':
                 specifier: ^6.5.0
@@ -284,7 +284,7 @@ importers:
     packages/contexts-dialogflow-cx:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             '@google-cloud/dialogflow-cx':
                 specifier: ^4.4.0
@@ -324,7 +324,7 @@ importers:
     packages/create-builderbot:
         dependencies:
             '@builderbot/cli':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
         devDependencies:
             '@rollup/plugin-commonjs':
@@ -349,7 +349,7 @@ importers:
     packages/database-json:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
         devDependencies:
             '@rollup/plugin-commonjs':
@@ -383,7 +383,7 @@ importers:
     packages/database-mongo:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             mongodb:
                 specifier: ^4.17.2
@@ -429,7 +429,7 @@ importers:
     packages/database-mysql:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             mysql2:
                 specifier: ^2.3.3
@@ -472,7 +472,7 @@ importers:
     packages/database-postgres:
         dependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             pg:
                 specifier: ^8.11.5
@@ -691,7 +691,7 @@ importers:
                 version: 2.2.1
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             '@jest/globals':
                 specifier: ^29.7.0
@@ -788,7 +788,7 @@ importers:
                 version: 2.2.1
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             '@jest/globals':
                 specifier: ^29.7.0
@@ -861,7 +861,7 @@ importers:
                 version: 2.26.22
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             '@hapi/boom':
                 specifier: ^10.0.1
@@ -919,7 +919,7 @@ importers:
                 version: 4.20.1
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             '@jest/globals':
                 specifier: ^29.7.0
@@ -992,7 +992,7 @@ importers:
                 version: 5.1.0(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10)
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             '@jest/globals':
                 specifier: ^29.7.0
@@ -1074,7 +1074,7 @@ importers:
                 version: 1.23.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             '@jest/globals':
                 specifier: ^29.7.0
@@ -1150,7 +1150,7 @@ importers:
                 version: 0.33.3
         devDependencies:
             '@builderbot/bot':
-                specifier: ^1.3.2-alpha.0
+                specifier: ^1.3.2-alpha.1
                 version: 1.3.2-y.0
             '@rollup/plugin-commonjs':
                 specifier: ^25.0.7
