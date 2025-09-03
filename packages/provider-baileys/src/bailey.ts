@@ -120,7 +120,8 @@ class BaileysProvider extends ProviderClass<WASocket> {
      * Setup console filter to simplify specific error messages
      * @description
      * - Override console.log, console.error, console.warn to show simplified versions of decrypt-related errors
-     * - Shows only error titles without stack traces for "Failed to decrypt message", "Bad MAC", and "Session error" messages
+     * - Shows only error titles without stack traces for "Failed to decrypt message", "Bad MAC", "Session error" messages
+     * - Shows simplified messages for session management: "Closing open session", "Closing session: SessionEntry"
      * - Other messages are displayed normally
      */
     private setupConsoleFilter() {
@@ -133,16 +134,22 @@ class BaileysProvider extends ProviderClass<WASocket> {
 
             // Detectar errores de descifrado y mostrar solo el título
             if (messageStr.includes('Failed to decrypt message')) {
-                return '❌ Failed to decrypt message (stack trace hidden)'
+                return 'Tratando de descifrar mensaje... (stack trace hidden)'
             }
             if (messageStr.includes('Bad MAC') || messageStr.includes('Error: Bad MAC')) {
-                return '❌ Bad MAC Error (stack trace hidden)'
+                return 'Re-intentando.. MAC (stack trace hidden)'
             }
             if (messageStr.includes('Session error')) {
-                return '❌ Session error (stack trace hidden)'
+                return 'Re-intentando.. Session  (stack trace hidden)'
             }
             if (messageStr.includes('decrypt message with any known session')) {
-                return '❌ Decrypt session error (stack trace hidden)'
+                return 'Re-intentando.. Decrypt (stack trace hidden)'
+            }
+            if (messageStr.includes('Closing open session in favor of incoming prekey bundle')) {
+                return '🔄 Session replaced by prekey bundle (details hidden)'
+            }
+            if (messageStr.includes('Closing session: SessionEntry')) {
+                return '🔄 Session closed (details hidden)'
             }
 
             return false // No filtrar
