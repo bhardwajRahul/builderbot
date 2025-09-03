@@ -568,9 +568,9 @@ importers:
             baileys:
                 specifier: ^6.7.19
                 version: 6.7.19(bufferutil@4.0.9)(jimp@1.6.0)(sharp@0.33.3)(utf-8-validate@5.0.10)
-            baileys-mod:
-                specifier: ^6.8.5
-                version: 6.8.5(bufferutil@4.0.9)(jimp@1.6.0)(qrcode-terminal@0.12.0)(sharp@0.33.3)(utf-8-validate@5.0.10)
+            cheerio:
+                specifier: ^1.1.2
+                version: 1.1.2
             fluent-ffmpeg:
                 specifier: ^2.1.2
                 version: 2.1.3
@@ -5182,30 +5182,6 @@ packages:
         peerDependencies:
             '@babel/core': ^7.0.0
 
-    baileys-mod@6.8.5:
-        resolution:
-            {
-                integrity: sha512-Gd8cNAiECqXarCtY5ZeObTaMzjd9iGSkvk+y7FgwKAfVLgJuk+PuFd86l6KFi9z+BGbekaXK4CARKBMcy369gA==,
-            }
-        engines: { node: '>=20.0.0' }
-        peerDependencies:
-            audio-decode: ^2.1.3
-            jimp: ^0.16.1
-            link-preview-js: ^3.0.0
-            qrcode-terminal: ^0.12.0
-            sharp: ^0.34.1
-        peerDependenciesMeta:
-            audio-decode:
-                optional: true
-            jimp:
-                optional: true
-            link-preview-js:
-                optional: true
-            qrcode-terminal:
-                optional: true
-            sharp:
-                optional: true
-
     baileys@6.7.19:
         resolution:
             {
@@ -5539,13 +5515,6 @@ packages:
                 integrity: sha512-B+L5iIa9mgcjLbliir2th36yEwPftrzteHYujzsx3dFP/31GCHcIeS8f5MGd80odLOjaOvSpU3EEAmRQptkxLQ==,
             }
         engines: { node: ^16.14.0 || >=18.0.0 }
-
-    cache-manager@5.7.6:
-        resolution:
-            {
-                integrity: sha512-wBxnBHjDxF1RXpHCBD6HGvKER003Ts7IIm0CHpggliHzN1RZditb7rXoduE1rplc2DEFYKxhLKgFuchXMJje9w==,
-            }
-        engines: { node: '>= 18' }
 
     cacheable-lookup@7.0.0:
         resolution:
@@ -7615,12 +7584,6 @@ packages:
         resolution:
             {
                 integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==,
-            }
-
-    eventemitter3@5.0.1:
-        resolution:
-            {
-                integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==,
             }
 
     events@3.3.0:
@@ -10091,17 +10054,6 @@ packages:
             }
         engines: { node: ^16.14.0 || >=18.0.0 }
 
-    libphonenumber-js@1.12.15:
-        resolution:
-            {
-                integrity: sha512-TMDCtIhWUDHh91wRC+wFuGlIzKdPzaTUHHVrIZ3vPUEoNaXFLrsIQ1ZpAeZeXApIF6rvDksMTvjrIQlLKaYxqQ==,
-            }
-
-    libsignal-node@https://codeload.github.com/nstar-y/libsignal/tar.gz/ddc70e49f86b458b220433d0d86fdb6ee3732aef:
-        resolution:
-            { tarball: https://codeload.github.com/nstar-y/libsignal/tar.gz/ddc70e49f86b458b220433d0d86fdb6ee3732aef }
-        version: 2.0.1
-
     lighthouse-logger@1.4.2:
         resolution:
             {
@@ -10186,12 +10138,6 @@ packages:
         resolution:
             {
                 integrity: sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==,
-            }
-
-    lodash.clonedeep@4.5.0:
-        resolution:
-            {
-                integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==,
             }
 
     lodash.defaults@4.2.0:
@@ -10981,13 +10927,6 @@ packages:
                 integrity: sha512-Tgiv4MlCgDb6XzelziB1mmL2xeoHls0KTpCm3Z3qr+LfF4mBEpkuc5vNrc927IT5+S5fv+vzStfI+HYC0igDpA==,
             }
         engines: { node: '>=18' }
-
-    music-metadata@7.14.0:
-        resolution:
-            {
-                integrity: sha512-xrm3w7SV0Wk+OythZcSbaI8mcr/KHd0knJieu8bVpaPfMv/Agz5EooCAPz3OR5hbYMiUG6dgAPKZKnMzV+3amA==,
-            }
-        engines: { node: '>=10' }
 
     mute-stream@0.0.8:
         resolution:
@@ -12342,13 +12281,6 @@ packages:
                 integrity: sha512-mRPQO2T1QQVw11E7+UdCJu7S61eJVWknzml9sC1heAdj1jxl0fWMBypIt9ZOcLFf8FkG995ZD7RnVk7HH72fZw==,
             }
 
-    promise-coalesce@1.1.2:
-        resolution:
-            {
-                integrity: sha512-zLaJ9b8hnC564fnJH6NFSOGZYYdzrAJn2JUUIwzoQb32fG2QAakpDNM+CZo1km6keXkRXRM+hml1BFAPVnPkxg==,
-            }
-        engines: { node: '>=16' }
-
     promise-inflight@1.0.1:
         resolution:
             {
@@ -12400,13 +12332,6 @@ packages:
                 integrity: sha512-SAzp/O4Yh02jGdRc+uIrGoe87dkN/XtwxfZ4ZyafJHymd79ozp5VG5nyZ7ygqPM5+cpLDjjGnYFUkngonyDPOQ==,
             }
         engines: { node: '>=14.0.0' }
-
-    protobufjs@6.11.4:
-        resolution:
-            {
-                integrity: sha512-5kQWPaJHi1WoCpjTGszzQ32PG2F4+wRY6BmAT4Vfw56Q2FZ4YZzK20xUYQH4YkfehY1e6QSICrJquM6xXZNcrw==,
-            }
-        hasBin: true
 
     protobufjs@6.8.8:
         resolution:
@@ -18600,32 +18525,6 @@ snapshots:
             babel-plugin-jest-hoist: 29.6.3
             babel-preset-current-node-syntax: 1.2.0(@babel/core@7.28.3)
 
-    baileys-mod@6.8.5(bufferutil@4.0.9)(jimp@1.6.0)(qrcode-terminal@0.12.0)(sharp@0.33.3)(utf-8-validate@5.0.10):
-        dependencies:
-            '@adiwajshing/keyed-db': 0.2.4
-            '@cacheable/node-cache': 1.7.0
-            '@hapi/boom': 9.1.4
-            async-mutex: 0.5.0
-            axios: 1.11.0
-            cache-manager: 5.7.6
-            libphonenumber-js: 1.12.15
-            libsignal: libsignal-node@https://codeload.github.com/nstar-y/libsignal/tar.gz/ddc70e49f86b458b220433d0d86fdb6ee3732aef
-            lodash: 4.17.21
-            music-metadata: 7.14.0
-            pino: 9.9.0
-            protobufjs: 6.11.4
-            uuid: 10.0.0
-            ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-        optionalDependencies:
-            jimp: 1.6.0
-            qrcode-terminal: 0.12.0
-            sharp: 0.33.3
-        transitivePeerDependencies:
-            - bufferutil
-            - debug
-            - supports-color
-            - utf-8-validate
-
     baileys@6.7.19(bufferutil@4.0.9)(jimp@1.6.0)(sharp@0.33.3)(utf-8-validate@5.0.10):
         dependencies:
             '@cacheable/node-cache': 1.7.0
@@ -18894,13 +18793,6 @@ snapshots:
             ssri: 10.0.6
             tar: 6.2.1
             unique-filename: 3.0.0
-
-    cache-manager@5.7.6:
-        dependencies:
-            eventemitter3: 5.0.1
-            lodash.clonedeep: 4.5.0
-            lru-cache: 10.4.3
-            promise-coalesce: 1.1.2
 
     cacheable-lookup@7.0.0: {}
 
@@ -20202,8 +20094,6 @@ snapshots:
 
     eventemitter3@4.0.7: {}
 
-    eventemitter3@5.0.1: {}
-
     events@3.3.0: {}
 
     execa@4.1.0:
@@ -20671,7 +20561,7 @@ snapshots:
         dependencies:
             basic-ftp: 5.0.5
             data-uri-to-buffer: 6.0.2
-            debug: 4.3.4
+            debug: 4.4.1
         transitivePeerDependencies:
             - supports-color
 
@@ -22062,13 +21952,6 @@ snapshots:
         transitivePeerDependencies:
             - supports-color
 
-    libphonenumber-js@1.12.15: {}
-
-    libsignal-node@https://codeload.github.com/nstar-y/libsignal/tar.gz/ddc70e49f86b458b220433d0d86fdb6ee3732aef:
-        dependencies:
-            curve25519-js: 0.0.4
-            protobufjs: 6.8.8
-
     lighthouse-logger@1.4.2:
         dependencies:
             debug: 2.6.9
@@ -22121,8 +22004,6 @@ snapshots:
             p-locate: 5.0.0
 
     lodash.camelcase@4.3.0: {}
-
-    lodash.clonedeep@4.5.0: {}
 
     lodash.defaults@4.2.0:
         optional: true
@@ -22597,18 +22478,6 @@ snapshots:
             strtok3: 10.3.4
             token-types: 6.1.1
             uint8array-extras: 1.5.0
-        transitivePeerDependencies:
-            - supports-color
-
-    music-metadata@7.14.0:
-        dependencies:
-            '@tokenizer/token': 0.3.0
-            content-type: 1.0.5
-            debug: 4.4.1
-            file-type: 16.5.4
-            media-typer: 1.1.0
-            strtok3: 6.3.0
-            token-types: 4.2.1
         transitivePeerDependencies:
             - supports-color
 
@@ -23542,8 +23411,6 @@ snapshots:
 
     promise-call-limit@3.0.2: {}
 
-    promise-coalesce@1.1.2: {}
-
     promise-inflight@1.0.1: {}
 
     promise-retry@2.0.1:
@@ -23570,22 +23437,6 @@ snapshots:
     proto3-json-serializer@2.0.2:
         dependencies:
             protobufjs: 7.5.4
-
-    protobufjs@6.11.4:
-        dependencies:
-            '@protobufjs/aspromise': 1.1.2
-            '@protobufjs/base64': 1.1.2
-            '@protobufjs/codegen': 2.0.4
-            '@protobufjs/eventemitter': 1.1.0
-            '@protobufjs/fetch': 1.1.0
-            '@protobufjs/float': 1.0.2
-            '@protobufjs/inquire': 1.1.0
-            '@protobufjs/path': 1.1.2
-            '@protobufjs/pool': 1.1.0
-            '@protobufjs/utf8': 1.1.0
-            '@types/long': 4.0.2
-            '@types/node': 20.19.11
-            long: 4.0.0
 
     protobufjs@6.8.8:
         dependencies:
