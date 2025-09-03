@@ -19,7 +19,7 @@ const emptyDirSessions = async (pathBase: string) =>
  */
 const baileyCleanNumberWithLid = (key: { senderPn?: string; remoteJid?: string }): string => {
     const parseLidSender = key.remoteJid?.includes('@lid') ? key.senderPn : key.remoteJid
-    return parseLidSender
+    return parseLidSender || ''
 }
 
 /**
