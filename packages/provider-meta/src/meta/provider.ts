@@ -11,7 +11,7 @@ import { join, basename, resolve } from 'path'
 import Queue from 'queue-promise'
 
 import { MetaCoreVendor } from './core'
-import { downloadFile, getProfile } from '../utils'
+import { downloadFile, getProfile, verifyToken } from '../utils'
 import { parseMetaNumber } from '../utils/number'
 
 import type { MetaInterface } from '~/interface/meta'
@@ -67,9 +67,21 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
             .post('/webhook', this.vendor.incomingMsg)
     }
 
+    /**
+     * Get the profile of a WhatsApp user
+     * @returns The profile of the WhatsApp user
+     */
     protected async afterHttpServerInit(): Promise<void> {
         try {
             const { version, numberId, jwtToken } = this.globalVendorArgs
+
+            // Verify token first
+            const tokenVerification = await verifyToken(jwtToken)
+            if (!tokenVerification.data?.is_valid) {
+                throw new Error('Invalid token')
+            }
+
+            // Get profile
             const profile = await getProfile(version, numberId, jwtToken)
             const host = {
                 ...profile,
@@ -78,13 +90,51 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
             this.vendor.emit('host', host)
             this.emit('ready')
         } catch (err) {
+            let errorTitle = '🟠 ERROR AUTH  🟠'
+            let instructions = [
+                `Error connecting to META, make sure you have the correct credentials, .env`,
+                `https://builderbot.vercel.app/en/providers/meta`,
+            ]
+
+            // Add specific error details
+            if (err.message.includes('Invalid token')) {
+                errorTitle = '🔑 TOKEN ERROR'
+                instructions = [
+                    'Invalid or expired JWT token',
+                    'Check your META_ACCESS_TOKEN in .env file',
+                    'Generate a new token at: https://developers.facebook.com/apps/',
+                ]
+            } else if (err.message.includes('timeout')) {
+                errorTitle = '🌐 TIMEOUT ERROR'
+                instructions = [
+                    'Meta API is not responding',
+                    'Check your internet connection',
+                    'Try again in a few minutes',
+                ]
+            } else if (err.response?.status === 401) {
+                errorTitle = '🔐 UNAUTHORIZED'
+                instructions = ['Invalid credentials', 'Verify META_ACCESS_TOKEN and META_PHONE_NUMBER_ID']
+            } else if (err.response?.status === 403) {
+                errorTitle = '🚫 FORBIDDEN'
+                instructions = [
+                    'Token lacks required permissions',
+                    'Check your app permissions in Meta Developer Console',
+                ]
+            } else if (err.response?.status >= 500) {
+                errorTitle = '🔧 META SERVER ERROR'
+                instructions = ['Meta API is experiencing issues', 'Try again later']
+            }
+
+            // Add the actual error message
+            if (err.message) {
+                instructions.push(`Error: ${err.message}`)
+            }
+
             this.emit('notice', {
-                title: '🟠 ERROR AUTH  🟠',
-                instructions: [
-                    `Error connecting to META, make sure you have the correct credentials, .env`,
-                    `https://builderbot.vercel.app/en/providers/meta`,
-                ],
+                title: errorTitle,
+                instructions,
             })
+            this.emit('error', err)
         }
     }
 
@@ -488,7 +538,7 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
                             screen: screenName,
                             data: data ? data : { '<CUSTOM_KEY>': '<CUSTOM_VALUE>' },
                         },
-                        ...(isDraftFlow && { mode: 'draft' })
+                        ...(isDraftFlow && { mode: 'draft' }),
                     },
                 },
             },
