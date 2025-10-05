@@ -11,7 +11,7 @@ import { join, basename, resolve } from 'path'
 import Queue from 'queue-promise'
 
 import { MetaCoreVendor } from './core'
-import { downloadFile, getProfile, verifyToken } from '../utils'
+import { downloadFile, getProfile } from '../utils'
 import { parseMetaNumber } from '../utils/number'
 
 import type { MetaInterface } from '~/interface/meta'
@@ -71,16 +71,10 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
      * Get the profile of a WhatsApp user
      * @returns The profile of the WhatsApp user
      */
+
     protected async afterHttpServerInit(): Promise<void> {
         try {
             const { version, numberId, jwtToken } = this.globalVendorArgs
-
-            // Verify token first
-            const tokenVerification = await verifyToken(jwtToken)
-            if (!tokenVerification.data?.is_valid) {
-                throw new Error('Invalid token')
-            }
-
             // Get profile
             const profile = await getProfile(version, numberId, jwtToken)
             const host = {

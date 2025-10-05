@@ -1,5 +1,5 @@
 export { getMediaUrl } from './mediaUrl'
 export { downloadFile, fileTypeFromFile } from './downloadFile'
 export { processIncomingMessage } from './processIncomingMsg'
-export { getProfile, verifyToken } from './profile'
+export { getProfile } from './profile'
 export { parseMetaNumber } from './number'

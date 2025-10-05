@@ -128,7 +128,7 @@ const generalDownload = async (url: string, pathToSave?: string, headers?: Recor
 
     const handleDownload = (): Promise<{ response: IncomingMessage; fullPath: string }> => {
         try {
-            const checkProtocol = url.startsWith('http')
+            const checkProtocol = url.startsWith('https')
             const handleHttp = checkProtocol ? https : http
             const fileName = basename(checkProtocol ? new URL(url).pathname : url)
             const name = parse(fileName).name
