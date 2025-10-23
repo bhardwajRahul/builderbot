@@ -365,7 +365,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
         try {
             const sock = makeWASocketOther({
                 logger: loggerBaileys,
-                version: [2, 3000, 1023223821] as WAVersion,
+                version: [2, 3000, 1025190524] as WAVersion,
                 printQRInTerminal: false,
                 auth: {
                     creds: state.creds,
