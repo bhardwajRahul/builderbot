@@ -566,8 +566,8 @@ importers:
                 specifier: ^0.5.7
                 version: 0.5.7
             baileys:
-                specifier: 7.0.0-rc.5
-                version: 7.0.0-rc.5(bufferutil@4.0.9)(jimp@1.6.0)(sharp@0.33.3)(utf-8-validate@5.0.10)
+                specifier: 7.0.0-rc.6
+                version: 7.0.0-rc.6(bufferutil@4.0.9)(jimp@1.6.0)(sharp@0.33.3)(utf-8-validate@5.0.10)
             cheerio:
                 specifier: ^1.1.2
                 version: 1.1.2
@@ -5182,10 +5182,10 @@ packages:
         peerDependencies:
             '@babel/core': ^7.0.0
 
-    baileys@7.0.0-rc.5:
+    baileys@7.0.0-rc.6:
         resolution:
             {
-                integrity: sha512-y95gW7UtKbD4dQb46G75rnr0U0LtnBItA002ARggDiCgm92Z8wnM+wxqC8OI/sDFanz3TgzqE4t7MPwNusUqUQ==,
+                integrity: sha512-Unt58dy39rFQ3dRgTUxT38/AXWInNLYx9zijU7PpHDeoNdJfvgyROnHLtmh9hAglLKA1t374v1JLnfI5Tk/TSQ==,
             }
         engines: { node: '>=20.0.0' }
         peerDependencies:
@@ -18552,7 +18552,7 @@ snapshots:
             babel-plugin-jest-hoist: 29.6.3
             babel-preset-current-node-syntax: 1.2.0(@babel/core@7.28.3)
 
-    baileys@7.0.0-rc.5(bufferutil@4.0.9)(jimp@1.6.0)(sharp@0.33.3)(utf-8-validate@5.0.10):
+    baileys@7.0.0-rc.6(bufferutil@4.0.9)(jimp@1.6.0)(sharp@0.33.3)(utf-8-validate@5.0.10):
         dependencies:
             '@cacheable/node-cache': 1.7.0
             '@hapi/boom': 9.1.4
