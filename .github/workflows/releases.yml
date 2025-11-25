@@ -42,7 +42,8 @@ jobs:
               run: |
                   # standard-version actualiza package.json y CHANGELOG.md
                   # --skip.commit y --skip.tag para manejar commit nosotros
-                  npx standard-version --skip.commit --skip.tag
+                  # --release-as patch fuerza siempre un incremento mínimo de versión
+                  npx standard-version --skip.commit --skip.tag --release-as patch
 
                   # Obtener la nueva versión
                   NEW_VERSION=$(node -p "require('./package.json').version")
