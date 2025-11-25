@@ -116,6 +116,21 @@ jobs:
                   path: packages
 
             - name: Release Alpha
-              run: npx lerna publish --canary --preid alpha --dist-tag alpha --yes
+              id: release
+              run: |
+                  npx lerna publish --canary --preid alpha --dist-tag alpha --yes 2>&1 | tee release-output.txt
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: 📋 Log Deployed Version
+              run: |
+                  echo "=========================================="
+                  echo "🚀 VERSIÓN DESPLEGADA (ALPHA)"
+                  echo "=========================================="
+                  echo "📅 Fecha: $(date)"
+                  echo "🔗 Commit: ${{ github.sha }}"
+                  echo "👤 Actor: ${{ github.actor }}"
+                  echo "------------------------------------------"
+                  echo "📦 Paquetes publicados:"
+                  npx lerna ls --json | jq -r '.[] | "  - \(.name): \(.version)"'
+                  echo "=========================================="
