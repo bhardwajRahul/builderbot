@@ -1,7 +1,6 @@
 import { ProviderClass, utils } from '@builderbot/bot'
 import type { BotContext, Button, SendOptions } from '@builderbot/bot/dist/types'
 import type { Boom } from '@hapi/boom'
-import { WAVersion, WABrowserDescription } from 'baileys'
 import { Console } from 'console'
 import type { PathOrFileDescriptor } from 'fs'
 import { createReadStream, createWriteStream, readFileSync } from 'fs'
@@ -19,7 +18,6 @@ import {
     AnyMediaMessageContent,
     AnyMessageContent,
     BaileysEventMap,
-    PollMessageOptions,
     WAMessage,
     WASocket,
     MessageUpsertType,
@@ -32,18 +30,13 @@ import {
     makeWASocketOther,
     proto,
     useMultiFileAuthState,
+    PollMessageOptions,
+    WAVersion,
+    WABrowserDescription,
 } from './baileyWrapper'
 import { releaseTmp } from './releaseTmp'
 import type { BaileyGlobalVendorArgs } from './type'
-import {
-    baileyGenerateImage,
-    baileyCleanNumber,
-    baileyIsValidNumber,
-    emptyDirSessions,
-    baileyCleanNumberWithLid,
-    baileyStoreLIDPNMapping,
-    baileyStoreLIDPNMappings,
-} from './utils'
+import { baileyGenerateImage, baileyCleanNumber, baileyIsValidNumber, emptyDirSessions } from './utils'
 
 class BaileysProvider extends ProviderClass<WASocket> {
     public globalVendorArgs: BaileyGlobalVendorArgs = {
@@ -113,82 +106,8 @@ class BaileysProvider extends ProviderClass<WASocket> {
 
         this.globalVendorArgs = { ...this.globalVendorArgs, ...args }
 
-        this.setupConsoleFilter()
         this.setupCleanupHandlers()
         this.setupPeriodicCleanup()
-    }
-
-    /**
-     * Setup console filter to simplify specific error messages
-     * @description
-     * - Override console.log, console.error, console.warn to show simplified versions of decrypt-related errors
-     * - Shows only error titles without stack traces for "Failed to decrypt message", "Bad MAC", "Session error" messages
-     * - Shows simplified messages for session management: "Closing open session", "Closing session: SessionEntry"
-     * - Other messages are displayed normally
-     */
-    private setupConsoleFilter() {
-        const originalConsoleLog = console.log
-        const originalConsoleError = console.error
-        const originalConsoleWarn = console.warn
-
-        const shouldFilterMessage = (message: string): string | false => {
-            const messageStr = String(message)
-
-            // Detectar errores de descifrado y mostrar solo el título
-            if (messageStr.includes('Failed to decrypt message')) {
-                return '[INFO] 🔐 Procesando mensaje cifrado (reintentando descifrado)'
-            }
-            if (messageStr.includes('Bad MAC') || messageStr.includes('Error: Bad MAC')) {
-                return '[INFO] 🔐 Error de autenticación del mensaje (MAC), reintentando...'
-            }
-            if (messageStr.includes('Session error')) {
-                return '[INFO] ⚠️ Error de sesión detectado, reconectando...'
-            }
-            if (messageStr.includes('decrypt message with any known session')) {
-                return '[INFO] 🔐 Sincronizando sesión de cifrado con el dispositivo'
-            }
-            if (messageStr.includes('Closing open session in favor of incoming prekey bundle')) {
-                return '[INFO] 🔄 Actualizando claves de sesión (Signal Protocol Prekey Bundle)'
-            }
-            if (messageStr.includes('Closing stale open session for new outgoing prekey bundle')) {
-                return '[INFO] 🔄 Actualizando sesión cifrada con el servidor (Signal Protocol Ratchet)'
-            }
-            if (messageStr.includes('Closing session: SessionEntry')) {
-                return '[INFO] 🔄 Actualizando sesión cifrada con el servidor (Signal Protocol Ratchet)'
-            }
-
-            return false // No filtrar
-        }
-
-        console.log = (...args: any[]) => {
-            const message = args.join(' ')
-            const filteredMessage = shouldFilterMessage(message)
-            if (filteredMessage) {
-                originalConsoleLog(filteredMessage)
-            } else {
-                originalConsoleLog.apply(console, args)
-            }
-        }
-
-        console.error = (...args: any[]) => {
-            const message = args.join(' ')
-            const filteredMessage = shouldFilterMessage(message)
-            if (filteredMessage) {
-                originalConsoleError(filteredMessage)
-            } else {
-                originalConsoleError.apply(console, args)
-            }
-        }
-
-        console.warn = (...args: any[]) => {
-            const message = args.join(' ')
-            const filteredMessage = shouldFilterMessage(message)
-            if (filteredMessage) {
-                originalConsoleWarn(filteredMessage)
-            } else {
-                originalConsoleWarn.apply(console, args)
-            }
-        }
     }
 
     /**
@@ -320,19 +239,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
 
     protected getMessage = async (key: { remoteJid: string; id: string }) => {
         // only if store is present
-        // In Baileys v7.0.0+ use create(), fallback to empty object for tests
-        try {
-            if (proto.Message.create) {
-                return proto.Message.create({})
-            } else {
-                // Fallback for tests and older versions
-                return {}
-            }
-        } catch (error) {
-            // Fallback in case of any error
-            this.logger.log(`[${new Date().toISOString()}] Error in getMessage, using fallback:`, error)
-            return {}
-        }
+        return proto.Message.create({})
     }
 
     protected saveCredsGlobal: (() => Promise<void>) | null = null
@@ -346,13 +253,6 @@ class BaileysProvider extends ProviderClass<WASocket> {
         const loggerBaileys = pino({ level: 'fatal' })
 
         this.saveCredsGlobal = saveCreds
-
-        // Verificar soporte para LID system (Baileys v7.0.0+)
-        this.validateLIDSupport(state)
-
-        this.logger.log(
-            `[${new Date().toISOString()}] LID system support: ${this.hasLIDSupport(state) ? 'ENABLED' : 'DISABLED'}`
-        )
 
         try {
             if (this.globalVendorArgs.useBaileysStore) {
@@ -379,10 +279,9 @@ class BaileysProvider extends ProviderClass<WASocket> {
                 markOnlineOnConnect: false,
                 generateHighQualityLinkPreview: true,
                 getMessage: this.getMessage,
-                msgRetryCounterCache: this.msgRetryCounterCache,
-                userDevicesCache: this.userDevicesCache as any, // NodeCache compatibility with Baileys v7.0.0+
+                msgRetryCounterCache: this.msgRetryCounterCache as any,
+                userDevicesCache: this.userDevicesCache as any,
                 retryRequestDelayMs: 1000, // Mayor delay entre reintentos
-                maxMsgRetryCount: 8, // Más intentos de reenvío
                 connectTimeoutMs: 60_000, // 1 minuto timeout conexión
                 keepAliveIntervalMs: 10_000, // Keep alive cada 10 segundos
                 qrTimeout: 40_000, // 40 segundos para QR
@@ -394,24 +293,6 @@ class BaileysProvider extends ProviderClass<WASocket> {
                     }
                     return false
                 },
-                patchMessageBeforeSending: (message: {
-                    deviceSentMessage: { message: { listMessage: { listType: proto.Message.ListMessage.ListType } } }
-                    listMessage: { listType: proto.Message.ListMessage.ListType }
-                }) => {
-                    if (
-                        message.deviceSentMessage?.message?.listMessage?.listType ===
-                        proto.Message.ListMessage.ListType.PRODUCT_LIST
-                    ) {
-                        message = JSON.parse(JSON.stringify(message))
-                        message.deviceSentMessage.message.listMessage.listType =
-                            proto.Message.ListMessage.ListType.SINGLE_SELECT
-                    }
-                    if (message.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
-                        message = JSON.parse(JSON.stringify(message))
-                        message.listMessage.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT
-                    }
-                    return message
-                },
                 ...this.globalVendorArgs,
             })
 
@@ -419,17 +300,16 @@ class BaileysProvider extends ProviderClass<WASocket> {
             if (this.globalVendorArgs.usePairingCode && !sock.authState.creds.registered) {
                 if (this.globalVendorArgs.phoneNumber) {
                     const phoneNumberClean = utils.removePlus(this.globalVendorArgs.phoneNumber)
+                    const code = await sock.requestPairingCode(this.globalVendorArgs.phoneNumber)
                     await utils.delay(2000)
-                    const code = await sock.requestPairingCode(phoneNumberClean, '')
-
                     this.emit('require_action', {
                         title: '⚡⚡ ACTION REQUIRED ⚡⚡',
                         instructions: [
                             `Accept the WhatsApp notification from ${this.globalVendorArgs.phoneNumber} on your phone 👌`,
-                            `The token for linking is: ${code}`,
+                            `The pairing code is: ${code}`,
                             `Need help: https://link.codigoencasa.com/DISCORD`,
                         ],
-                        payload: { qr: null, code },
+                        payload: { code },
                     })
                 } else {
                     this.emit('auth_failure', [
@@ -531,11 +411,17 @@ class BaileysProvider extends ProviderClass<WASocket> {
      * to have a standard set of events
      * @returns
      */
-    protected busEvents = (): { event: keyof BaileysEventMap; func: (arg?: any, arg2?: any) => any }[] => [
+    protected busEvents = (): {
+        event: keyof BaileysEventMap
+        func: (arg?: any, arg2?: any) => any
+    }[] => [
         {
             event: 'messages.upsert',
             func: async (argFromProvider) => {
-                const { messages, type } = argFromProvider as { type: MessageUpsertType; messages: WAMessage[] }
+                const { messages, type } = argFromProvider as {
+                    type: MessageUpsertType
+                    messages: WAMessage[]
+                }
                 if (type !== 'notify') return
 
                 const pingMessageSync = async (_messageCtx: proto.IWebMessageInfo) => {
@@ -544,8 +430,10 @@ class BaileysProvider extends ProviderClass<WASocket> {
                             this.mapSet.add(_messageCtx?.key?.remoteJid)
                             const jid = _messageCtx?.key?.remoteJid
 
-                            await this.vendor.readMessages([_messageCtx?.key])
-                            await this.vendor.sendMessage(jid, { text: this.globalVendorArgs.experimentalSyncMessage })
+                            // Removed readMessages() call - Baileys v7 no longer sends ACKs to prevent bans
+                            await this.vendor.sendMessage(jid, {
+                                text: this.globalVendorArgs.experimentalSyncMessage,
+                            })
                         } catch (e) {
                             this.logger.log(e)
                         }
@@ -642,16 +530,11 @@ class BaileysProvider extends ProviderClass<WASocket> {
                         }
                     }
 
-                    // Extract sender using Baileys v7.0.0+ LID system with Alt fields
-                    const senderInfo = this.extractSenderWithAltFields(messageCtx?.key)
-
                     let payload = {
                         ...messageCtx,
                         body: textToBody,
                         name: messageCtx?.pushName,
-                        from: senderInfo.identifier,
-                        fromType: senderInfo.type, // 'lid', 'pn', or 'unknown'
-                        isLID: senderInfo.isLID,
+                        from: messageCtx?.key?.remoteJid,
                     }
 
                     if (messageCtx.message?.locationMessage) {
@@ -665,27 +548,45 @@ class BaileysProvider extends ProviderClass<WASocket> {
                     }
 
                     if (messageCtx.message?.videoMessage) {
-                        payload = { ...payload, body: utils.generateRefProvider('_event_media_') }
+                        payload = {
+                            ...payload,
+                            body: utils.generateRefProvider('_event_media_'),
+                        }
                     }
 
                     if (messageCtx.message?.stickerMessage) {
-                        payload = { ...payload, body: utils.generateRefProvider('_event_media_') }
+                        payload = {
+                            ...payload,
+                            body: utils.generateRefProvider('_event_media_'),
+                        }
                     }
 
                     if (messageCtx.message?.imageMessage) {
-                        payload = { ...payload, body: utils.generateRefProvider('_event_media_') }
+                        payload = {
+                            ...payload,
+                            body: utils.generateRefProvider('_event_media_'),
+                        }
                     }
 
                     if (messageCtx.message?.documentMessage || messageCtx.message?.documentWithCaptionMessage) {
-                        payload = { ...payload, body: utils.generateRefProvider('_event_document_') }
+                        payload = {
+                            ...payload,
+                            body: utils.generateRefProvider('_event_document_'),
+                        }
                     }
 
                     if (messageCtx.message?.audioMessage) {
-                        payload = { ...payload, body: utils.generateRefProvider('_event_voice_note_') }
+                        payload = {
+                            ...payload,
+                            body: utils.generateRefProvider('_event_voice_note_'),
+                        }
                     }
 
                     if (messageCtx.message?.orderMessage) {
-                        payload = { ...payload, body: utils.generateRefProvider('_event_order_') }
+                        payload = {
+                            ...payload,
+                            body: utils.generateRefProvider('_event_order_'),
+                        }
                     }
 
                     if (payload.from === 'status@broadcast') continue
@@ -787,52 +688,31 @@ class BaileysProvider extends ProviderClass<WASocket> {
                 }
             },
         },
-        {
-            event: 'lid-mapping.update',
-            func: async (lidMappingUpdate) => {
-                try {
-                    this.logger.log(`[${new Date().toISOString()}] LID mapping update received:`, lidMappingUpdate)
-
-                    const lidStore = this.getLIDMappingStore()
-                    if (!lidStore) {
-                        this.logger.log(`[${new Date().toISOString()}] LID store not available for mapping update`)
-                        return
-                    }
-
-                    // Process LID mapping updates according to Baileys v7.0.0+ specs
-                    if (lidMappingUpdate && typeof lidMappingUpdate === 'object') {
-                        // Use our utility functions for consistent LID handling
-                        // Store individual mappings using our wrapper functions
-                        for (const [lid, pn] of Object.entries(lidMappingUpdate)) {
-                            if (lid && pn && typeof lid === 'string' && typeof pn === 'string') {
-                                await baileyStoreLIDPNMapping(lidStore, lid, pn)
-                                this.logger.log(`[${new Date().toISOString()}] Stored LID mapping: ${lid} <-> ${pn}`)
-                            }
-                        }
-
-                        // Batch store if multiple mappings using our wrapper function
-                        if (Object.keys(lidMappingUpdate).length > 1) {
-                            await baileyStoreLIDPNMappings(lidStore, lidMappingUpdate)
-                            this.logger.log(
-                                `[${new Date().toISOString()}] Batch stored ${
-                                    Object.keys(lidMappingUpdate).length
-                                } LID mappings`
-                            )
-                        }
-
-                        // Emit custom event for external listeners
-                        this.emit('lid_mapping_updated', {
-                            mappings: lidMappingUpdate,
-                            timestamp: new Date().toISOString(),
-                            count: Object.keys(lidMappingUpdate).length,
-                        })
-                    }
-                } catch (error) {
-                    this.logger.log(`[${new Date().toISOString()}] Error processing lid-mapping.update:`, error)
-                }
-            },
-        },
     ]
+
+    /**
+     *
+     * @param {string} number
+     * @param {string} text
+     * @param {string} footer
+     * @param {Array} poll
+     * @example await sendMessage("+XXXXXXXXXXX", { poll: { "name": "You accept terms", "values": [ "Yes", "Not"], "selectableCount": 1 })
+     */
+
+    sendPoll = async (numberIn: string, text: string, poll: { options: string[]; multiselect: any }) => {
+        const numberClean = baileyCleanNumber(numberIn)
+
+        if (poll.options.length < 2) return false
+
+        const pollMessage: PollMessageOptions = {
+            name: text,
+            values: poll.options,
+            selectableCount: poll?.multiselect === undefined ? 1 : poll?.multiselect ? 1 : 0,
+        }
+        return this.vendor.sendMessage(numberClean, {
+            poll: pollMessage,
+        })
+    }
 
     /**
      * @param {string} orderId
@@ -845,23 +725,59 @@ class BaileysProvider extends ProviderClass<WASocket> {
     }
 
     /**
+     * Obtener LID (Local Identifier) para un número de teléfono (PN)
+     * @param {string} phoneNumber - Número de teléfono en formato JID (e.g., '1234567890@s.whatsapp.net')
+     * @returns {Promise<string|null>} - El LID correspondiente o null si no se encuentra
+     * @example await getLIDForPN('1234567890@s.whatsapp.net')
+     */
+    getLIDForPN = async (phoneNumber: string) => {
+        try {
+            const vendor = this.vendor as any
+            if (vendor?.signalRepository?.lidMapping?.getLIDForPN) {
+                return await vendor.signalRepository.lidMapping.getLIDForPN(phoneNumber)
+            }
+            return null
+        } catch (e) {
+            this.logger.log(`[${new Date().toISOString()}] Error getting LID for PN:`, e)
+            return null
+        }
+    }
+
+    /**
+     * Obtener número de teléfono (PN) para un LID (Local Identifier)
+     * @param {string} lid - Local Identifier
+     * @returns {Promise<string|null>} - El número de teléfono correspondiente o null si no se encuentra
+     * @example await getPNForLID('lid:xxxxxx')
+     */
+    getPNForLID = async (lid: string) => {
+        try {
+            const vendor = this.vendor as any
+            if (vendor?.signalRepository?.lidMapping?.getPNForLID) {
+                return await vendor.signalRepository.lidMapping.getPNForLID(lid)
+            }
+            return null
+        } catch (e) {
+            this.logger.log(`[${new Date().toISOString()}] Error getting PN for LID:`, e)
+            return null
+        }
+    }
+
+    /**
      * @param {string} number
      * @param {string} message
      * @example await sendMessage('+XXXXXXXXXXX', 'https://dominio.com/imagen.jpg' | 'img/imagen.jpg')
      */
 
     sendMedia = async (number: string, imageUrl: string, text: string) => {
-        // CRITICAL FIX: Resolve LID to PN for outgoing messages
-        const resolvedNumber = await this.resolveLIDToPNForSending(number)
         const fileDownloaded = await utils.generalDownload(imageUrl)
         const mimeType = mime.lookup(fileDownloaded)
-        if (`${mimeType}`.includes('image')) return this.sendImage(resolvedNumber, fileDownloaded, text)
-        if (`${mimeType}`.includes('video')) return this.sendVideo(resolvedNumber, fileDownloaded, text)
+        if (`${mimeType}`.includes('image')) return this.sendImage(number, fileDownloaded, text)
+        if (`${mimeType}`.includes('video')) return this.sendVideo(number, fileDownloaded, text)
         if (`${mimeType}`.includes('audio')) {
             const fileOpus = await utils.convertAudio(fileDownloaded)
-            return this.sendAudio(resolvedNumber, fileOpus)
+            return this.sendAudio(number, fileOpus)
         }
-        return this.sendFile(resolvedNumber, fileDownloaded, text)
+        return this.sendFile(number, fileDownloaded, text)
     }
 
     /**
@@ -905,14 +821,11 @@ class BaileysProvider extends ProviderClass<WASocket> {
      */
 
     sendAudio = async (number: string, audioUrl: string) => {
-        // CRITICAL FIX: Resolve LID to PN for outgoing messages
-        const resolvedNumber = await this.resolveLIDToPNForSending(number)
         const payload: AnyMediaMessageContent = {
             audio: { url: audioUrl },
             ptt: true,
         }
-        this.logger.log(`[${new Date().toISOString()}] Sending audio to: ${resolvedNumber} (original: ${number})`)
-        return this.vendor.sendMessage(resolvedNumber, payload)
+        return this.vendor.sendMessage(number, payload)
     }
 
     /**
@@ -922,11 +835,8 @@ class BaileysProvider extends ProviderClass<WASocket> {
      * @returns
      */
     sendText = async (number: string, message: string) => {
-        // CRITICAL FIX: Ensure we use PN for outgoing messages to prevent sync issues
-        const resolvedNumber = await this.resolveLIDToPNForSending(number)
         const payload: AnyMessageContent = { text: message }
-        this.logger.log(`[${new Date().toISOString()}] Sending message to: ${resolvedNumber} (original: ${number})`)
-        return this.vendor.sendMessage(resolvedNumber, payload)
+        return this.vendor.sendMessage(number, payload)
     }
 
     /**
@@ -937,8 +847,6 @@ class BaileysProvider extends ProviderClass<WASocket> {
      */
 
     sendFile = async (number: string, filePath: string, text: string) => {
-        // CRITICAL FIX: Resolve LID to PN for outgoing messages
-        const resolvedNumber = await this.resolveLIDToPNForSending(number)
         const mimeType = mime.lookup(filePath)
         const fileName = basename(filePath)
 
@@ -949,8 +857,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
             caption: text,
         }
 
-        this.logger.log(`[${new Date().toISOString()}] Sending file to: ${resolvedNumber} (original: ${number})`)
-        return this.vendor.sendMessage(resolvedNumber, payload)
+        return this.vendor.sendMessage(number, payload)
     }
 
     /**
@@ -989,30 +896,6 @@ class BaileysProvider extends ProviderClass<WASocket> {
     }
 
     /**
-     *
-     * @param {string} number
-     * @param {string} text
-     * @param {string} footer
-     * @param {Array} poll
-     * @example await sendMessage("+XXXXXXXXXXX", { poll: { "name": "You accept terms", "values": [ "Yes", "Not"], "selectableCount": 1 })
-     */
-
-    sendPoll = async (numberIn: string, text: string, poll: { options: string[]; multiselect: any }) => {
-        const numberClean = baileyCleanNumber(numberIn)
-
-        if (poll.options.length < 2) return false
-
-        const pollMessage: PollMessageOptions = {
-            name: text,
-            values: poll.options,
-            selectableCount: poll?.multiselect === undefined ? 1 : poll?.multiselect ? 1 : 0,
-        }
-        return this.vendor.sendMessage(numberClean, {
-            poll: pollMessage,
-        })
-    }
-
-    /**
      * TODO: Necesita terminar de implementar el sendMedia y sendButton guiarse:
      * https://github.com/leifermendez/bot-whatsapp/blob/4e0fcbd8347f8a430adb43351b5415098a5d10df/packages/provider/src/web-whatsapp/index.js#L165
      * @param {string} number
@@ -1022,8 +905,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
 
     sendMessage = async (numberIn: string, message: string, options?: SendOptions): Promise<any> => {
         options = { ...options, ...options['options'] }
-        // CRITICAL FIX: Resolve LID to PN for outgoing messages to ensure WhatsApp sync
-        const number = await this.resolveLIDToPNForSending(baileyCleanNumber(`${numberIn}`))
+        const number = baileyCleanNumber(`${numberIn}`)
         if (options.buttons?.length) return this.sendButtons(number, message, options.buttons)
         if (options.media) return this.sendMedia(number, options.media, message)
         return this.sendText(number, message)
@@ -1161,156 +1043,6 @@ class BaileysProvider extends ProviderClass<WASocket> {
         return resolve(pathFile)
     }
 
-    /**
-     * Extracts sender information from MessageKey using Baileys v7.0.0+ Alt fields
-     * FOLLOWS OFFICIAL GUIDANCE: Prefers LIDs over PNs as per Baileys documentation
-     * Reference: https://baileys.wiki/docs/migration/to-v7.0.0
-     * @param key MessageKey with potential remoteJidAlt/participantAlt fields
-     * @returns Object with identifier (preferring LID per official guidance), type, and isLID flag
-     */
-    private extractSenderWithAltFields(key: any): {
-        identifier: string
-        type: 'lid' | 'pn' | 'unknown'
-        isLID: boolean
-    } {
-        try {
-            let rawIdentifier = ''
-            let isOriginallyLID = false
-
-            // For groups: prioritize participantAlt over participant
-            if (key?.participant || key?.participantAlt) {
-                rawIdentifier = key.participantAlt || key.participant || ''
-                isOriginallyLID = rawIdentifier.includes('@lid')
-            }
-            // For DMs: prioritize remoteJidAlt over remoteJid
-            else if (key?.remoteJid || key?.remoteJidAlt) {
-                rawIdentifier = key.remoteJidAlt || key.remoteJid || ''
-                isOriginallyLID = rawIdentifier.includes('@lid')
-            }
-
-            if (!rawIdentifier) {
-                return {
-                    identifier: '',
-                    type: 'unknown',
-                    isLID: false,
-                }
-            }
-
-            // NORMALIZATION STRATEGY: Follow Baileys v7.0.0+ official guidance - MIGRATE TO LIDs
-            // Reference: https://baileys.wiki/docs/migration/to-v7.0.0
-            // "THE GOAL SHOULDN'T BE TO RESTORE THE PN JID ANYMORE, MIGRATE TO LIDs. PNs are WAY LESS RELIABLE."
-            let normalizedIdentifier = rawIdentifier
-            let shouldPreferLID = false
-
-            // Strategy 1: If we have both LID and PN, prefer LID (official recommendation)
-            if (isOriginallyLID) {
-                // Keep the LID - this is the preferred approach per Baileys docs
-                normalizedIdentifier = rawIdentifier
-                shouldPreferLID = true
-                this.logger.log(
-                    `[${new Date().toISOString()}] Using LID ${rawIdentifier} as primary identifier (Baileys v7.0.0+ best practice)`
-                )
-            }
-            // Strategy 2: If we only have PN but can get LID from store, try to upgrade to LID
-            else if (!isOriginallyLID && rawIdentifier.includes('@s.whatsapp.net')) {
-                // We have a PN, but should try to find corresponding LID if available
-                const lidStore = this.getLIDMappingStore()
-                if (lidStore) {
-                    // Note: We would need to implement async LID lookup here in the future
-                    // For now, keep the PN but log the situation
-                    this.logger.log(
-                        `[${new Date().toISOString()}] PN ${rawIdentifier} detected - should lookup corresponding LID for migration`
-                    )
-                }
-            }
-
-            // Clean the normalized identifier
-            const cleanIdentifier = baileyCleanNumber(normalizedIdentifier)
-
-            // Determine final type based on normalized identifier
-            const finalType = normalizedIdentifier.includes('@lid')
-                ? 'lid'
-                : normalizedIdentifier.includes('@s.whatsapp.net')
-                ? 'pn'
-                : 'unknown'
-
-            return {
-                identifier: cleanIdentifier,
-                type: finalType,
-                isLID: isOriginallyLID, // Flag indicates if original was LID, even if we normalized to PN
-            }
-        } catch (error) {
-            this.logger.log(`[${new Date().toISOString()}] Error extracting sender with Alt fields:`, error)
-            // Fallback to original method
-            return {
-                identifier: baileyCleanNumberWithLid(key),
-                type: 'unknown',
-                isLID: false,
-            }
-        }
-    }
-
-    /**
-     * CRITICAL FIX for Baileys v7.0.0+ LID sync issues
-     * Resolves LID to PN for outgoing messages to ensure they appear in WhatsApp app
-     *
-     * Issue: Messages sent to LIDs from linked devices don't sync to main WhatsApp app
-     * Solution: Convert LIDs to PNs when sending messages (keep LIDs for receiving)
-     *
-     * @param identifier The identifier to resolve (LID or PN)
-     * @returns PN format for reliable message sending
-     */
-    private async resolveLIDToPNForSending(identifier: string): Promise<string> {
-        try {
-            // If it's already a PN, return as-is
-            if (identifier.includes('@s.whatsapp.net')) {
-                return identifier
-            }
-
-            // If it's a LID, try to resolve to PN using LID store
-            if (identifier.includes('@lid')) {
-                const lidStore = this.getLIDMappingStore()
-                if (lidStore) {
-                    try {
-                        const pn = await this.getPNFromLID(identifier)
-                        if (pn) {
-                            this.logger.log(
-                                `[${new Date().toISOString()}] 🔄 Resolved LID ${identifier} to PN ${pn} for sending (sync fix)`
-                            )
-                            return pn
-                        } else {
-                            this.logger.log(
-                                `[${new Date().toISOString()}] ⚠️ No PN mapping found for LID ${identifier}, using LID (may not sync)`
-                            )
-                        }
-                    } catch (error) {
-                        this.logger.log(`[${new Date().toISOString()}] ❌ Error resolving LID to PN:`, error)
-                    }
-                }
-            }
-
-            // If it's a group, return as-is
-            if (identifier.includes('@g.us')) {
-                return identifier
-            }
-
-            // For raw numbers, format as PN
-            const cleaned = identifier.replace(/[^\d]/g, '')
-            if (cleaned.length >= 10) {
-                const pn = `${cleaned}@s.whatsapp.net`
-                this.logger.log(`[${new Date().toISOString()}] 📞 Formatted raw number ${identifier} as PN ${pn}`)
-                return pn
-            }
-
-            // Fallback: return original identifier
-            this.logger.log(`[${new Date().toISOString()}] ⚠️ Using original identifier ${identifier} for sending`)
-            return identifier
-        } catch (error) {
-            this.logger.log(`[${new Date().toISOString()}] ❌ Error in resolveLIDToPNForSending:`, error)
-            return identifier
-        }
-    }
-
     private shouldReconnect(statusCode: number): boolean {
         // Lista de códigos donde SÍ debemos reconectar
         const reconnectableCodes = [
@@ -1360,164 +1092,6 @@ class BaileysProvider extends ProviderClass<WASocket> {
                 this.logger.log(`[${new Date().toISOString()}] Reconnection failed:`, error)
             }
         }, delay)
-    }
-
-    /**
-     * Validates if the auth state supports LID system (lid-mapping and device-index keys)
-     * Required for Baileys v7.0.0+ LID system
-     * @param state The authentication state from useMultiFileAuthState
-     */
-    private validateLIDSupport(state: any): void {
-        try {
-            // OFFICIAL REQUIREMENT per https://baileys.wiki/docs/migration/to-v7.0.0
-            // "This system requires the auth state to support the lid-mapping and device-index keys"
-
-            let hasLidMappingKey = false
-            let hasDeviceIndexKey = false
-
-            if (state.keys && typeof state.keys === 'object') {
-                const keyNames = Object.keys(state.keys)
-                hasLidMappingKey = keyNames.some(
-                    (key) => key === 'lid-mapping' || key === 'lidMapping' || key.includes('lid-map')
-                )
-                hasDeviceIndexKey = keyNames.some(
-                    (key) => key === 'device-index' || key === 'deviceIndex' || key.includes('device-index')
-                )
-            }
-
-            // Critical validation as per official docs
-            if (!hasLidMappingKey) {
-                this.logger.log(
-                    `[${new Date().toISOString()}] ⚠️  CRITICAL: Auth state missing 'lid-mapping' key support`
-                )
-                this.logger.log(`[${new Date().toISOString()}] This is REQUIRED for Baileys v7.0.0+ LID system`)
-            }
-
-            if (!hasDeviceIndexKey) {
-                this.logger.log(
-                    `[${new Date().toISOString()}] ⚠️  CRITICAL: Auth state missing 'device-index' key support`
-                )
-                this.logger.log(`[${new Date().toISOString()}] This is REQUIRED for Baileys v7.0.0+ LID system`)
-            }
-
-            if (hasLidMappingKey && hasDeviceIndexKey) {
-                this.logger.log(
-                    `[${new Date().toISOString()}] ✅ Auth state supports LID system requirements (lid-mapping ✓, device-index ✓)`
-                )
-            } else {
-                this.logger.log(
-                    `[${new Date().toISOString()}] ❌ Auth state does NOT meet Baileys v7.0.0+ LID requirements`
-                )
-                this.logger.log(`[${new Date().toISOString()}] Please update your authentication state provider`)
-            }
-
-            // Debug logging
-            if (state.keys) {
-                const availableKeys = Object.keys(state.keys).slice(0, 5) // Show first 5 keys only
-                this.logger.log(`[${new Date().toISOString()}] Available auth keys (sample):`, availableKeys)
-            }
-        } catch (error) {
-            this.logger.log(`[${new Date().toISOString()}] Error validating LID support:`, error)
-        }
-    }
-
-    /**
-     * Checks if the auth state has LID system support
-     * @param state The authentication state
-     * @returns boolean indicating LID support
-     */
-    private hasLIDSupport(state: any): boolean {
-        try {
-            // Check for the presence of keys and creds which should support LID mapping
-            const hasKeys = state.keys && typeof state.keys === 'object'
-            const hasCreds = state.creds && typeof state.creds === 'object'
-
-            return hasKeys && hasCreds
-        } catch (error) {
-            this.logger.log(`[${new Date().toISOString()}] Error checking LID support:`, error)
-            return false
-        }
-    }
-
-    /**
-     * Gets the LID mapping store from the socket
-     * @returns The LID mapping store or null if not available
-     */
-    public getLIDMappingStore(): any {
-        try {
-            if (this.vendor && this.vendor.signalRepository && this.vendor.signalRepository.lidMapping) {
-                return this.vendor.signalRepository.lidMapping
-            }
-            return null
-        } catch (error) {
-            this.logger.log(`[${new Date().toISOString()}] Error accessing LID mapping store:`, error)
-            return null
-        }
-    }
-
-    /**
-     * Public method to get LID from PN using the internal store
-     * @param phoneNumber Phone number to get LID for
-     * @returns Promise<string | null> LID or null if not found
-     */
-    public async getLIDFromPN(phoneNumber: string): Promise<string | null> {
-        const lidStore = this.getLIDMappingStore()
-        if (!lidStore) {
-            this.logger.log(`[${new Date().toISOString()}] LID store not available for getLIDFromPN`)
-            return null
-        }
-
-        try {
-            const lid = await lidStore.getLIDForPN(phoneNumber)
-            return lid || null
-        } catch (error) {
-            this.logger.log(`[${new Date().toISOString()}] Error getting LID from PN ${phoneNumber}:`, error)
-            return null
-        }
-    }
-
-    /**
-     * Public method to get PN from LID using the internal store
-     * @param lid LID to get phone number for
-     * @returns Promise<string | null> Phone number or null if not found
-     */
-    public async getPNFromLID(lid: string): Promise<string | null> {
-        const lidStore = this.getLIDMappingStore()
-        if (!lidStore) {
-            this.logger.log(`[${new Date().toISOString()}] LID store not available for getPNFromLID`)
-            return null
-        }
-
-        try {
-            const phoneNumber = await lidStore.getPNForLID(lid)
-            return phoneNumber || null
-        } catch (error) {
-            this.logger.log(`[${new Date().toISOString()}] Error getting PN from LID ${lid}:`, error)
-            return null
-        }
-    }
-
-    /**
-     * Public method to store a LID-PN mapping
-     * @param lid Local Identifier
-     * @param phoneNumber Phone Number
-     * @returns Promise<boolean> Success status
-     */
-    public async storeLIDPNMapping(lid: string, phoneNumber: string): Promise<boolean> {
-        const lidStore = this.getLIDMappingStore()
-        if (!lidStore) {
-            this.logger.log(`[${new Date().toISOString()}] LID store not available for storeLIDPNMapping`)
-            return false
-        }
-
-        try {
-            await baileyStoreLIDPNMapping(lidStore, lid, phoneNumber)
-            this.logger.log(`[${new Date().toISOString()}] Successfully stored LID mapping: ${lid} <-> ${phoneNumber}`)
-            return true
-        } catch (error) {
-            this.logger.log(`[${new Date().toISOString()}] Error storing LID mapping ${lid}<->${phoneNumber}:`, error)
-            return false
-        }
     }
 }
 

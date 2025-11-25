@@ -3,7 +3,7 @@ name: 🚀⚡ Liberando versiones
 on:
     push:
         branches:
-            - release/production
+            - builderbot-prod
 jobs:
     ############ RELEASE ############
     release-prod:
@@ -19,11 +19,13 @@ jobs:
               run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
 
             - uses: pnpm/action-setup@v2.2.4
+              with:
+                  version: 9.0.6
 
             - name: Setup Node
               uses: actions/setup-node@v3
               with:
-                  node-version: 18.x
+                  node-version: 22.20.0
                   cache: 'pnpm'
                   registry-url: https://registry.npmjs.org/
 
@@ -45,29 +47,10 @@ jobs:
             - name: Build Package
               run: pnpm build:full
 
-            - name: Release @bot-whatsapp/bot
-              run: node ./scripts/release.js --name=bot --version="${{ steps.package-version.outputs.current-version}}" --token="${{ secrets.NPM_TOKEN }}"
-
-            - name: Release @bot-whatsapp/cli
-              run: node ./scripts/release.js --name=cli --version="${{ steps.package-version.outputs.current-version}}" --token="${{ secrets.NPM_TOKEN }}"
-
-            - name: Release @bot-whatsapp/create-bot-whatsapp
-              run: node ./scripts/release.js --name=create-bot-whatsapp --version="${{ steps.package-version.outputs.current-version}}" --token="${{ secrets.NPM_TOKEN }}"
-
-            - name: Release @bot-whatsapp/database
-              run: node ./scripts/release.js --name=database --version="${{ steps.package-version.outputs.current-version}}" --token="${{ secrets.NPM_TOKEN }}"
-
-            - name: Release @bot-whatsapp/provider
-              run: node ./scripts/release.js --name=provider --version="${{ steps.package-version.outputs.current-version}}" --token="${{ secrets.NPM_TOKEN }}"
-
-            - name: Release @bot-whatsapp/contexts
-              run: node ./scripts/release.js --name=contexts --version="${{ steps.package-version.outputs.current-version}}" --token="${{ secrets.NPM_TOKEN }}"
-
-            - name: Release @bot-whatsapp/portal
-              run: node ./scripts/release.js --name=portal --version="${{ steps.package-version.outputs.current-version}}" --token="${{ secrets.NPM_TOKEN }}"
-
-            - name: Release eslint-plugin-bot-whatsapp
-              run: node ./scripts/release.js --name=eslint-plugin-bot-whatsapp --version="${{ steps.package-version.outputs.current-version}}" --token="${{ secrets.NPM_TOKEN }}"
+            - name: Release Latest
+              run: npx lerna publish from-package --dist-tag latest --yes
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Release Github
               run: node ./scripts/github.js --version="${{ steps.package-version.outputs.current-version}}" --token="${{ secrets.OCTO_TOKEN }}"
