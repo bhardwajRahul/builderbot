@@ -35,8 +35,28 @@ jobs:
             - name: Install NPM Dependencies
               run: pnpm install --frozen-lockfile
 
-            - name: Set CHANGELOG
-              run: pnpm run release
+            - name: Bump version with standard-version (skip commit/tag)
+              run: |
+                  # standard-version actualiza package.json y CHANGELOG.md
+                  # --skip.commit y --skip.tag para manejar commit nosotros
+                  npx standard-version --skip.commit --skip.tag
+
+                  # Obtener la nueva versión
+                  NEW_VERSION=$(node -p "require('./package.json').version")
+                  echo "📦 Nueva versión: $NEW_VERSION"
+
+            - name: Sync all packages with lerna
+              run: |
+                  # Obtener versión del package.json raíz
+                  ROOT_VERSION=$(node -p "require('./package.json').version")
+                  echo "📦 Sincronizando todos los paquetes a versión: $ROOT_VERSION"
+
+                  # Actualizar lerna.json y todos los package.json de los paquetes
+                  npx lerna version $ROOT_VERSION --force-publish --yes --no-git-tag-version --no-push
+
+                  # Verificar versiones
+                  echo "📋 Versiones actualizadas:"
+                  npx lerna ls --json | jq -r '.[] | "  - \(.name): \(.version)"'
 
             - name: get-npm-version
               id: package-version
@@ -44,6 +64,20 @@ jobs:
 
             - name: Build Package
               run: pnpm build:full
+
+            - name: Commit and tag version changes
+              run: |
+                  # Obtener versión para el commit
+                  VERSION=$(node -p "require('./package.json').version")
+
+                  # Hacer commit de todos los cambios
+                  git add -A
+                  git commit -m "chore(release): $VERSION [skip ci]" || true
+
+                  # Crear tag
+                  git tag -a "v$VERSION" -m "Release v$VERSION" || true
+
+                  echo "✅ Commit y tag creados para v$VERSION"
 
             - name: Release Latest
               run: npx lerna publish from-package --dist-tag latest --yes
