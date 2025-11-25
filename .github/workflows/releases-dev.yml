@@ -84,12 +84,15 @@ jobs:
         name: 📦 Release Alpha
         runs-on: ubuntu-latest
         needs: [test, build]
+        permissions:
+            contents: read
+            packages: write
+            id-token: write
         steps:
             - name: Checkout
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-                  persist-credentials: false
 
             - uses: pnpm/action-setup@v4
 
@@ -105,7 +108,7 @@ jobs:
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: 'pnpm'
-                  registry-url: https://registry.npmjs.org/
+                  registry-url: 'https://registry.npmjs.org'
 
             - name: Install Dependencies
               run: pnpm install --frozen-lockfile
@@ -116,20 +119,12 @@ jobs:
                   name: dist-packages
                   path: packages
 
-            - name: Verify artifacts
-              run: |
-                  echo "📂 Verificando artifacts descargados:"
-                  ls -la packages/
-                  echo "---"
-                  ls -la packages/bot/dist/ || echo "⚠️ No se encontró packages/bot/dist"
-
-            - name: Configure npm auth
-              run: |
-                  echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-                  npm whoami || echo "⚠️ No se pudo verificar autenticación npm"
+            - name: Verify npm authentication
+              run: npm whoami
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Release Alpha
-              id: release
               run: |
                   # Obtener versión base sin sufijo alpha
                   BASE_VERSION=$(node -p "require('./lerna.json').version.replace(/-alpha.*/, '')")
@@ -139,15 +134,10 @@ jobs:
                   # Actualizar versión en todos los paquetes
                   npx lerna version $NEW_VERSION --force-publish --yes --no-git-tag-version --no-push
 
-                  # Verificar versiones actualizadas
-                  echo "📋 Versiones actualizadas:"
-                  npx lerna ls --json | jq -r '.[] | "  - \(.name): \(.version)"'
-
-                  # Publicar al tag alpha (--no-verify-access evita chequeos de permisos)
-                  npx lerna publish from-package --dist-tag alpha --yes --no-verify-access 2>&1 | tee release-output.txt
+                  # Publicar al tag alpha
+                  npx lerna publish from-package --dist-tag alpha --yes --no-verify-access
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: 📋 Log Deployed Version
               run: |
