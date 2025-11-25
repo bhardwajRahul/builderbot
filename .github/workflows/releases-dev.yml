@@ -23,6 +23,13 @@ jobs:
 
             - uses: pnpm/action-setup@v4
 
+            - name: Cache pnpm store
+              uses: actions/cache@v4
+              with:
+                  path: ~/.pnpm-store
+                  key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-${{ runner.os }}-
+
             - name: Setup Node
               uses: actions/setup-node@v4
               with:
@@ -45,6 +52,13 @@ jobs:
 
             - uses: pnpm/action-setup@v4
 
+            - name: Cache pnpm store
+              uses: actions/cache@v4
+              with:
+                  path: ~/.pnpm-store
+                  key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-${{ runner.os }}-
+
             - name: Setup Node
               uses: actions/setup-node@v4
               with:
@@ -56,6 +70,13 @@ jobs:
 
             - name: Build Packages
               run: pnpm run clean.lib && pnpm run build
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dist-packages
+                  path: packages/*/dist
+                  retention-days: 1
 
     ############ RELEASE ############
     release:
@@ -71,6 +92,13 @@ jobs:
 
             - uses: pnpm/action-setup@v4
 
+            - name: Cache pnpm store
+              uses: actions/cache@v4
+              with:
+                  path: ~/.pnpm-store
+                  key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-${{ runner.os }}-
+
             - name: Setup Node
               uses: actions/setup-node@v4
               with:
@@ -81,8 +109,11 @@ jobs:
             - name: Install Dependencies
               run: pnpm install --frozen-lockfile
 
-            - name: Build Packages
-              run: pnpm run clean.lib && pnpm run build
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: dist-packages
+                  path: packages
 
             - name: Release Alpha
               run: npx lerna publish --canary --preid alpha --dist-tag alpha --yes
