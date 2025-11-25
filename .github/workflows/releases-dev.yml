@@ -134,8 +134,8 @@ jobs:
                   # Actualizar versión en todos los paquetes
                   npx lerna version $NEW_VERSION --force-publish --yes --no-git-tag-version --no-push
 
-                  # Publicar al tag alpha
-                  npx lerna publish from-package --dist-tag alpha --yes --no-verify-access
+                  # Publicar al tag alpha (--no-git-checks ignora cambios sin commitear)
+                  npx lerna publish from-package --dist-tag alpha --yes --no-git-checks
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
