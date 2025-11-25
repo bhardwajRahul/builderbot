@@ -16,7 +16,7 @@
     ],
     "bin": "./bin/create.cjs",
     "dependencies": {
-        "@builderbot/cli": "1.3.2-y.0"
+        "@builderbot/cli": "*"
     },
     "repository": {
         "type": "git",
