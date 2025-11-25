@@ -16,7 +16,7 @@ const githubGithubRelease = async (
     tag_name = '',
     auth = '',
     owner = 'codigoencasa',
-    repo = 'bot-whatsapp'
+    repo = 'builderbot'
 ) => {
     const octokit = new Octokit({
         auth,

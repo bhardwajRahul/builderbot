@@ -3,7 +3,7 @@ name: Build and Test
 on:
     pull_request:
         branches:
-            - dev
+            - builderbot-dev
 
 jobs:
     ############ BUILD PACKAGE ############
@@ -17,12 +17,12 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
 
-            - uses: pnpm/action-setup@v2.2.4
+            - uses: pnpm/action-setup@v4
 
             - name: Setup Node
               uses: actions/setup-node@v3
               with:
-                  node-version: 18.x
+                  node-version: 22.20.0
                   cache: 'pnpm'
                   registry-url: https://registry.npmjs.org/
 
@@ -45,12 +45,12 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
 
-            - uses: pnpm/action-setup@v2.2.4
+            - uses: pnpm/action-setup@v4
 
             - name: Setup Node
               uses: actions/setup-node@v3
               with:
-                  node-version: 18.x
+                  node-version: 22.20.0
                   cache: 'pnpm'
                   registry-url: https://registry.npmjs.org/
 
@@ -71,12 +71,12 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
 
-            - uses: pnpm/action-setup@v2.2.4
+            - uses: pnpm/action-setup@v4
 
             - name: Setup Node
               uses: actions/setup-node@v3
               with:
-                  node-version: 18.x
+                  node-version: 22.20.0
                   cache: 'pnpm'
                   registry-url: https://registry.npmjs.org/
 

@@ -61,7 +61,9 @@ const fullSamplesFlow = addKeyword(['samples', utils.setEvent('SAMPLES')])
 const main = async () => {
     const adapterFlow = createFlow([welcomeFlow, registerFlow, fullSamplesFlow])
     
-    const adapterProvider = createProvider(Provider)
+    const adapterProvider = createProvider(Provider, 
+		{ version: [2, 3000, 1027934701] as any } 
+	)
         const adapterDB = new Database({
         dbUri: process.env.MONGO_DB_URI,
         dbName: process.env.MONGO_DB_NAME,
