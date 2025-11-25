@@ -50,6 +50,8 @@ const { generalDownload } = proxyquire('../../src/utils/download', {
     'follow-redirects': {
         http: httpMock,
         https: httpsMock,
+        '@global': true,
+        '@noCallThru': true,
     },
 })
 
