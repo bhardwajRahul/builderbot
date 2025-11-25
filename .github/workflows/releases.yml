@@ -88,7 +88,7 @@ jobs:
 
             - name: Push changes and tags
               run: |
-                  git push origin builderbot-prod --follow-tags
+                  git push origin builderbot-prod --follow-tags --no-verify
                   echo "✅ Cambios y tags subidos al repositorio"
 
             - name: Release Latest
