@@ -20,10 +20,6 @@ jobs:
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Set output
-              id: vars
-              run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-
             - uses: pnpm/action-setup@v4
 
             - name: Setup Node
@@ -41,60 +37,38 @@ jobs:
             - name: Install NPM Dependencies
               run: pnpm install --frozen-lockfile
 
-            - name: Bump version with standard-version (skip commit/tag)
+            - name: Build Package (before versioning)
               run: |
-                  # standard-version actualiza package.json y CHANGELOG.md
-                  # --skip.commit y --skip.tag para manejar commit nosotros
-                  # --release-as patch fuerza siempre un incremento mínimo de versión
-                  npx standard-version --skip.commit --skip.tag --release-as patch
+                  echo "🔨 Construyendo paquetes antes de versionar..."
+                  pnpm build:full
+                  echo "✅ Build exitoso"
 
-                  # Obtener la nueva versión
-                  NEW_VERSION=$(node -p "require('./package.json').version")
-                  echo "📦 Nueva versión: $NEW_VERSION"
-
-            - name: Sync all packages with lerna
+            - name: Bump version with lerna
               run: |
-                  # Obtener versión del package.json raíz
-                  ROOT_VERSION=$(node -p "require('./package.json').version")
-                  echo "📦 Sincronizando todos los paquetes a versión: $ROOT_VERSION"
+                  echo "📦 Actualizando versiones con lerna..."
+                  npx lerna version patch --force-publish --yes --no-push
 
-                  # Actualizar lerna.json y todos los package.json de los paquetes
-                  npx lerna version $ROOT_VERSION --force-publish --yes --no-git-tag-version --no-push
-
-                  # Verificar versiones
+                  # Verificar versiones actualizadas
                   echo "📋 Versiones actualizadas:"
                   npx lerna ls --json | jq -r '.[] | "  - \(.name): \(.version)"'
 
-            - name: get-npm-version
+            - name: Get npm version
               id: package-version
-              uses: martinbeentjes/npm-get-version-action@main
-
-            - name: Build Package
-              run: pnpm build:full
-
-            - name: Commit and tag version changes
               run: |
-                  # Obtener versión para el commit
-                  VERSION=$(node -p "require('./package.json').version")
-
-                  # Hacer commit de todos los cambios
-                  git add -A
-                  git commit -m "chore(release): $VERSION [skip ci]" || true
-
-                  # Crear tag
-                  git tag -a "v$VERSION" -m "Release v$VERSION" || true
-
-                  echo "✅ Commit y tag creados para v$VERSION"
+                  VERSION=$(node -p "require('./lerna.json').version")
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "📦 Versión detectada: $VERSION"
 
             - name: Push changes and tags
               run: |
                   git push origin builderbot-prod --follow-tags --no-verify
                   echo "✅ Cambios y tags subidos al repositorio"
 
-            - name: Release Latest
-              run: npx lerna publish from-package --dist-tag latest --yes
+            - name: Publish packages to npm
+              run: npx lerna publish from-package --yes
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Release Github
-              run: node ./scripts/github.js --version="${{ steps.package-version.outputs.current-version}}" --token="${{ secrets.GITHUB_TOKEN }}"
+              if: success()
+              run: node ./scripts/github.js --version="${{ steps.package-version.outputs.version}}" --token="${{ secrets.GITHUB_TOKEN }}"
