@@ -26,6 +26,7 @@
     "next:version": "npx lerna version --force-publish",
     "preinstall": "npx only-allow pnpm",
     "release": "standard-version -- --prerelease --global",
+    "generate:release-summary": "node ./scripts/generate-release-summary.js --version=$(node -p \"require('./lerna.json').version\")",
     "cli": "node ./packages/cli/bin/cli.cjs"
   },
   "keywords": [
@@ -82,6 +83,7 @@
     "lerna-lcov-aggregate": "^1.0.0",
     "nx": "^20.0.0",
     "only-allow": "^1.2.1",
+    "openai": "^4.104.0",
     "prettier": "^2.8.8",
     "pretty-quick": "^3.3.1",
     "rimraf": "^5.0.5",

@@ -383,6 +383,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
                             `You must scan the QR Code`,
                             `Remember that the QR code updates every minute`,
                             `Need help: https://link.codigoencasa.com/DISCORD`,
+                            `Official documentation: https://www.builderbot.app`,
                         ],
                         payload: { qr },
                     })
