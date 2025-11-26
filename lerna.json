@@ -20,6 +20,15 @@
     "packages/contexts-dialogflow",
     "packages/contexts-dialogflow-cx"
   ],
+  "command": {
+    "version": {
+      "allowBranch": "*",
+      "ignoreChanges": [
+        "**/*"
+      ],
+      "noVerifyAccess": true
+    }
+  },
   "npmClient": "pnpm",
   "$schema": "node_modules/lerna/schemas/lerna-schema.json"
 }
