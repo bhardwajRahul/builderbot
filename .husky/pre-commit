@@ -2,3 +2,11 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 pnpm run fmt.staged
+
+# Agregar automáticamente los archivos formateados al staging area
+# para evitar el ciclo infinito de commits
+# Solo agregamos los archivos que estaban originalmente en staging
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+if [ -n "$STAGED_FILES" ]; then
+    echo "$STAGED_FILES" | xargs git add
+fi
