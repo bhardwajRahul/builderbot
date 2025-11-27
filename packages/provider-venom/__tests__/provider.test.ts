@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, jest, test } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals'
 import { writeFile } from 'fs/promises'
 import { utils } from '@builderbot/bot'
 import path from 'path'
@@ -30,7 +30,26 @@ describe('#VenomProvider', () => {
     let mockNext: any
     let mockRes: any
     let mockReq: any
+    const activeTimers = new Set<any>()
+    let originalSetTimeout: typeof setTimeout
+    let originalClearTimeout: typeof clearTimeout
+
     beforeEach(() => {
+        // Intercept setTimeout to track all timers
+        originalSetTimeout = global.setTimeout
+        originalClearTimeout = global.clearTimeout
+
+        global.setTimeout = ((fn: Function, delay?: number, ...args: any[]) => {
+            const timer = originalSetTimeout(fn, delay, ...args)
+            activeTimers.add(timer)
+            return timer
+        }) as typeof setTimeout
+
+        global.clearTimeout = ((timer: any) => {
+            activeTimers.delete(timer)
+            return originalClearTimeout(timer)
+        }) as typeof clearTimeout
+
         venomProvider = new VenomProvider({ name: 'test', gifPlayback: false })
         mockReq = {}
         mockRes = {
@@ -40,6 +59,18 @@ describe('#VenomProvider', () => {
         }
         mockNext = jest.fn()
         mockNext = jest.fn()
+    })
+
+    afterEach(() => {
+        jest.clearAllMocks()
+        // Clear all tracked timers
+        activeTimers.forEach((timer) => {
+            originalClearTimeout(timer)
+        })
+        activeTimers.clear()
+        // Restore original functions
+        global.setTimeout = originalSetTimeout
+        global.clearTimeout = originalClearTimeout
     })
 
     describe('VenomProvider Constructor', () => {
@@ -591,12 +622,17 @@ describe('#VenomProvider', () => {
                 emit: mockEmit,
             }
             venomProvider.emit = (mockEventEmitter as any).emit.bind(mockEventEmitter)
+            ;(venom.create as jest.Mock).mockImplementationOnce(() => {
+                return Promise.reject(new Error('Initialization failed'))
+            })
+
             // Act
             await venomProvider['initVendor']()
 
             // Assert
             expect(venom.create).toHaveBeenCalled()
             expect(mockEmit).toHaveBeenCalled()
+            // The setTimeout created in the error handler will be automatically cleaned up in afterEach
         })
     })
 })
