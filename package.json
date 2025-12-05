@@ -53,6 +53,7 @@
     "packages/database-json",
     "packages/database-postgres",
     "packages/eslint-plugin-builderbot",
+    "packages/manager",
     "packages/provider-meta",
     "packages/provider-evolution-api",
     "packages/provider-baileys",
