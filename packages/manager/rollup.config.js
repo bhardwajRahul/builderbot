@@ -16,7 +16,7 @@ export default {
     plugins: [
         json(),
         nodeResolve({
-            resolveOnly: (module) => !/polka|zod/.test(module),
+            resolveOnly: (module) => !/polka|ffmpeg|sharp|zod/.test(module),
         }),
         commonjs(),
         typescript(),
