@@ -35,9 +35,9 @@
   "devDependencies": {
     "@builderbot/bot": "workspace:*",
     "@jest/globals": "^29.7.0",
-    "@rollup/plugin-commonjs": "^25.0.8",
+    "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-node-resolve": "^16.0.3",
     "@types/jest": "^29.5.12",
     "@types/mime-types": "^2.1.4",
     "@types/node": "^20.12.3",
