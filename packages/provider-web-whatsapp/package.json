@@ -38,7 +38,7 @@
         "@types/body-parser": "^1.19.5",
         "@types/cors": "^2.8.17",
         "@types/mime-types": "^2.1.4",
-        "@types/node": "^20.12.3",
+        "@types/node": "^24.10.2",
         "@types/polka": "^0.5.7",
         "@types/qr-image": "^3.2.9",
         "@types/sinon": "^17.0.3",
@@ -46,7 +46,7 @@
         "mime-types": "^2.1.35",
         "pino": "^7.11.0",
         "qr-image": "^3.2.0",
-        "rimraf": "^5.0.5",
+        "rimraf": "^6.1.2",
         "rollup-plugin-typescript2": "^0.36.0",
         "sinon": "^17.0.1"
     },

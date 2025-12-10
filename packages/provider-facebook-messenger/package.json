@@ -40,10 +40,10 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@types/jest": "^30.0.0",
     "@types/mime-types": "^2.1.4",
-    "@types/node": "^20.12.3",
+    "@types/node": "^24.10.2",
     "@types/polka": "^0.5.7",
     "jest": "^30.2.0",
-    "rimraf": "^5.0.5",
+    "rimraf": "^6.1.2",
     "rollup-plugin-typescript2": "^0.36.0",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
