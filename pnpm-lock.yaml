@@ -194,8 +194,8 @@ importers:
   packages/cli:
     devDependencies:
       '@clack/prompts':
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.11.0
+        version: 0.11.0
       '@rollup/plugin-commonjs':
         specifier: ^29.0.0
         version: 29.0.0(rollup@4.53.3)
@@ -698,8 +698,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       pino:
-        specifier: ^7.11.0
-        version: 7.11.0
+        specifier: ^10.1.0
+        version: 10.1.0
       polka:
         specifier: ^0.5.2
         version: 0.5.2
@@ -725,8 +725,8 @@ importers:
         specifier: ^4.4.4
         version: 4.4.4
       wtfnode:
-        specifier: ^0.9.2
-        version: 0.9.4
+        specifier: ^0.10.1
+        version: 0.10.1
 
   packages/provider-evolution-api:
     dependencies:
@@ -1123,8 +1123,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       pino:
-        specifier: ^7.11.0
-        version: 7.11.0
+        specifier: ^10.1.0
+        version: 10.1.0
       polka:
         specifier: ^0.5.2
         version: 0.5.2
@@ -1150,8 +1150,8 @@ importers:
         specifier: ^4.4.4
         version: 4.4.4
       wtfnode:
-        specifier: ^0.9.2
-        version: 0.9.4
+        specifier: ^0.10.1
+        version: 0.10.1
 
   packages/provider-telegram:
     dependencies:
@@ -1336,8 +1336,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       pino:
-        specifier: ^8.19.0
-        version: 8.21.0
+        specifier: ^10.1.0
+        version: 10.1.0
       proxyquire:
         specifier: ^2.1.3
         version: 2.1.3
@@ -1415,8 +1415,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       pino:
-        specifier: ^7.11.0
-        version: 7.11.0
+        specifier: ^10.1.0
+        version: 10.1.0
       qr-image:
         specifier: ^3.2.0
         version: 3.2.0
@@ -1437,7 +1437,7 @@ importers:
         version: 30.2.0
       '@wppconnect-team/wppconnect':
         specifier: ~1.37.8
-        version: 1.37.8(bufferutil@4.0.9)(encoding@0.1.13)(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(typescript@5.9.3)(utf-8-validate@5.0.10)
+        version: 1.37.8(bufferutil@4.0.9)(encoding@0.1.13)(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.9.3)(utf-8-validate@5.0.10)
       body-parser:
         specifier: ^2.2.1
         version: 2.2.1
@@ -1491,14 +1491,14 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       pino:
-        specifier: ^8.19.0
-        version: 8.21.0
+        specifier: ^10.1.0
+        version: 10.1.0
       proxyquire:
         specifier: ^2.1.3
         version: 2.1.3
       puppeteer-core:
-        specifier: ^21.11.0
-        version: 21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)
+        specifier: ^24.32.1
+        version: 24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       qr-image:
         specifier: ^3.2.0
         version: 3.2.0
@@ -1834,13 +1834,11 @@ packages:
   '@cacheable/utils@2.3.2':
     resolution: {integrity: sha512-8kGE2P+HjfY8FglaOiW+y8qxcaQAfAhVML+i66XJR3YX5FtyDqn6Txctr3K2FrbxLKixRRYYBWMbuGciOhYNDg==}
 
-  '@clack/core@0.3.5':
-    resolution: {integrity: sha512-5cfhQNH+1VQ2xLQlmzXMqUoiaH0lRBq9/CLW9lTyMbuKLC3+xEK01tHVvyut++mLOn5urSHmkm6I0Lg9MaJSTQ==}
+  '@clack/core@0.5.0':
+    resolution: {integrity: sha512-p3y0FIOwaYRUPRcMO7+dlmLh8PSRcrjuTndsiA0WAFbWES0mLZlrjVoBRZ9DzkPFJZG6KGkJmoEAY0ZcVWTkow==}
 
-  '@clack/prompts@0.7.0':
-    resolution: {integrity: sha512-0MhX9/B4iL6Re04jPrttDm+BsP8y6mS7byuv0BvXgdXhbV5PdlsHt55dvNsuBCPZ7xq1oTAOOuotR9NFbQyMSA==}
-    bundledDependencies:
-      - is-unicode-supported
+  '@clack/prompts@0.11.0':
+    resolution: {integrity: sha512-pMN5FcrEw9hUkZA4f+zLlzivQSeQf5dRGJjSUbvVYDLvpKCdQx5OaknvKzgbtXOizhP+SJJJjqEbOe55uKKfAw==}
 
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -3210,6 +3208,11 @@ packages:
 
   '@puppeteer/browsers@2.10.13':
     resolution: {integrity: sha512-a9Ruw3j3qlnB5a/zHRTkruppynxqaeE4H9WNj5eYGRWqw0ZauZ23f4W2ARf3hghF5doozyD+CRtt7XSYuYRI/Q==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  '@puppeteer/browsers@2.11.0':
+    resolution: {integrity: sha512-n6oQX6mYkG8TRPuPXmbPidkUbsSRalhmaaVAQxvH1IkQy63cwsH+kOjB3e4cpCDHg0aSvsiX9bQ4s2VB6mGWUQ==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -5381,6 +5384,9 @@ packages:
 
   devtools-protocol@0.0.1521046:
     resolution: {integrity: sha512-vhE6eymDQSKWUXwwA37NtTTVEzjtGVfDr3pRbsWEQ5onH/Snp2c+2xZHWJJawG/0hCCJLRGt4xVtEVUVILol4w==}
+
+  devtools-protocol@0.0.1534754:
+    resolution: {integrity: sha512-26T91cV5dbOYnXdJi5qQHoTtUoNEqwkHcAyu/IKtjIAxiEqPMrDiRkDOPWVsGfNZGmlQVHQbZRSjD8sxagWVsQ==}
 
   dezalgo@1.0.4:
     resolution: {integrity: sha512-rXSP0bf+5n0Qonsb+SVVfNfIsimO4HEtmnIpPHY8Q1UCzKlQrDMfdobr8nJOOsRgWCyMRqeSBQzmWUMq7zvVig==}
@@ -8627,27 +8633,21 @@ packages:
   pino-abstract-transport@0.5.0:
     resolution: {integrity: sha512-+KAgmVeqXYbTtU2FScx1XS3kNyfZ5TrXY07V96QnUSFqo2gAqlvmaxH67Lj7SWazqsMabf+58ctdTcBgnOLUOQ==}
 
-  pino-abstract-transport@1.2.0:
-    resolution: {integrity: sha512-Guhh8EZfPCfH+PMXAb6rKOjGQEoy0xlAIn+irODG5kgfYV+BQ0rGYYWTIel3P5mmyXqkYkPmdIkywsn6QKUR1Q==}
-
   pino-abstract-transport@2.0.0:
     resolution: {integrity: sha512-F63x5tizV6WCh4R6RHyi2Ml+M70DNRXt/+HANowMflpgGFMAym/VKm6G7ZOQRjqN7XbGxK1Lg9t6ZrtzOaivMw==}
 
   pino-std-serializers@4.0.0:
     resolution: {integrity: sha512-cK0pekc1Kjy5w9V2/n+8MkZwusa6EyyxfeQCB799CQRhRt/CqYKiWs5adeu8Shve2ZNffvfC/7J64A2PJo1W/Q==}
 
-  pino-std-serializers@6.2.2:
-    resolution: {integrity: sha512-cHjPPsE+vhj/tnhCy/wiMh3M3z3h/j15zHQX+S9GkTBgqJuTuJzYJ4gUyACLhDaJ7kk9ba9iRDmbH2tJU03OiA==}
-
   pino-std-serializers@7.0.0:
     resolution: {integrity: sha512-e906FRY0+tV27iq4juKzSYPbUj2do2X2JX4EzSca1631EB2QJQUqGbDuERal7LCtOpxl6x3+nvo9NPZcmjkiFA==}
 
-  pino@7.11.0:
-    resolution: {integrity: sha512-dMACeu63HtRLmCG8VKdy4cShCPKaYDR4youZqoSWLxl5Gu99HUw8bw75thbPv9Nip+H+QYX8o3ZJbTdVZZ2TVg==}
+  pino@10.1.0:
+    resolution: {integrity: sha512-0zZC2ygfdqvqK8zJIr1e+wT1T/L+LF6qvqvbzEQ6tiMAoTqEVK9a1K3YRu8HEUvGEvNqZyPJTtb2sNIoTkB83w==}
     hasBin: true
 
-  pino@8.21.0:
-    resolution: {integrity: sha512-ip4qdzjkAyDDZklUaZkcRFb2iA118H9SgRh8yzTkSQK8HilsOJF7rSY8HoW5+I0M46AZgX/pxbprf2vvzQCE0Q==}
+  pino@7.11.0:
+    resolution: {integrity: sha512-dMACeu63HtRLmCG8VKdy4cShCPKaYDR4youZqoSWLxl5Gu99HUw8bw75thbPv9Nip+H+QYX8o3ZJbTdVZZ2TVg==}
     hasBin: true
 
   pino@9.14.0:
@@ -8763,9 +8763,6 @@ packages:
 
   process-warning@1.0.0:
     resolution: {integrity: sha512-du4wfLyj4yCZq1VupnVSZmRsPJsNuxoDQFdCFHLaYiEbFBD7QE0a+I4D7hOxrVnh78QE/YipFAj9lXHiXocV+Q==}
-
-  process-warning@3.0.0:
-    resolution: {integrity: sha512-mqn0kFRl0EoqhnL0GQ0veqFHyIN1yig9RHh/InzORTUiZHFRAur+aMtRkELNwGs9aNwKS6tg/An4NYBPGwvtzQ==}
 
   process-warning@5.0.0:
     resolution: {integrity: sha512-a39t9ApHNx2L4+HBnQKqxxHNs1r7KF+Intd8Q/g1bUh6q0WIp9voPXJ/x0j+ZL45KF1pJd9+q2jLIRMfvEshkA==}
@@ -8887,6 +8884,10 @@ packages:
 
   puppeteer-core@24.31.0:
     resolution: {integrity: sha512-pnAohhSZipWQoFpXuGV7xCZfaGhqcBR9C4pVrU0QSrcMi7tQMH9J9lDBqBvyMAHQqe8HCARuREqFuVKRQOgTvg==}
+    engines: {node: '>=18'}
+
+  puppeteer-core@24.32.1:
+    resolution: {integrity: sha512-GdWTOgy3RqaW6Etgx93ydlVJ4FBJ6TmhMksG5W7v4uawKAzLHNj33k4kBQ1SFZ9NvoXNjhdQuIQ+uik2kWnarA==}
     engines: {node: '>=18'}
 
   puppeteer-extra-plugin-stealth@2.11.2:
@@ -9514,9 +9515,6 @@ packages:
   sonic-boom@2.8.0:
     resolution: {integrity: sha512-kuonw1YOYYNOve5iHdSahXPOK49GqwA+LZhI6Wz/l0rP57iKyXXIHaRagOBHAPmGwJC6od2Z9zgvZ5loSgMlVg==}
 
-  sonic-boom@3.8.1:
-    resolution: {integrity: sha512-y4Z8LCDBuum+PBP3lSV7RHrXscqksve/bi0as7mhwVnBW+/wUqKT/2Kb7um8yqcFy0duYbbPxzt89Zy2nOCaxg==}
-
   sonic-boom@4.2.0:
     resolution: {integrity: sha512-INb7TM37/mAcsGmc9hyyI6+QR3rR1zVRu36B0NeGXKnOOLiZOfER5SA+N7X7k3yUYRzLWafduTDvJAfDswwEww==}
 
@@ -9835,9 +9833,6 @@ packages:
 
   thread-stream@0.15.2:
     resolution: {integrity: sha512-UkEhKIg2pD+fjkHQKyJO3yoIvAP3N6RlNFt2dUhcS1FGvCD1cQa1M/PGknCLFIyZdtJOWQjejp7bdNqmN7zwdA==}
-
-  thread-stream@2.7.0:
-    resolution: {integrity: sha512-qQiRWsU/wvNolI6tbbCKd9iKaTnCXsTwVxhhKM6nctPdujTyztjlbUkUTUymidWcMnZ5pWR0ej4a0tjsW021vw==}
 
   thread-stream@3.1.0:
     resolution: {integrity: sha512-OqyPZ9u96VohAyMfJykzmivOrY2wfMSf3C5TtFJVgN+Hm6aj+voFhlK+kZEIv2FBh1X6Xp3DlnCOfEQ3B2J86A==}
@@ -10544,8 +10539,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  wtfnode@0.9.4:
-    resolution: {integrity: sha512-5xgeLjIxZ8DVHU4ty3kOdd9QfHDxf89tmSy0+yN8n59S3wx6LBJh8XhEg61OPOGE65jEYGAtLq0GMzLKrsjfPQ==}
+  wtfnode@0.10.1:
+    resolution: {integrity: sha512-4mcHdlvcdSytsbFueN6QYZxmh5K7REawBk//ZOrJrtVOe548Qsq4GNEm/OUfZATqDnsX4g8uBbzmN7NdEZx09Q==}
     engines: {node: '>=0.10.0'}
     hasBin: true
 
@@ -11333,14 +11328,14 @@ snapshots:
       hashery: 1.2.0
       keyv: 5.5.5
 
-  '@clack/core@0.3.5':
+  '@clack/core@0.5.0':
     dependencies:
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
-  '@clack/prompts@0.7.0':
+  '@clack/prompts@0.11.0':
     dependencies:
-      '@clack/core': 0.3.5
+      '@clack/core': 0.5.0
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
@@ -13019,6 +13014,21 @@ snapshots:
       - react-native-b4a
       - supports-color
 
+  '@puppeteer/browsers@2.11.0':
+    dependencies:
+      debug: 4.4.3
+      extract-zip: 2.0.1
+      progress: 2.0.3
+      proxy-agent: 6.5.0
+      semver: 7.7.3
+      tar-fs: 3.1.1
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - react-native-b4a
+      - supports-color
+
   '@puppeteer/browsers@2.3.0':
     dependencies:
       debug: 4.4.3
@@ -14031,7 +14041,7 @@ snapshots:
       curve25519-js: 0.0.4
       protobufjs: 6.8.8
 
-  '@wppconnect-team/wppconnect@1.37.8(bufferutil@4.0.9)(encoding@0.1.13)(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@wppconnect-team/wppconnect@1.37.8(bufferutil@4.0.9)(encoding@0.1.13)(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
       '@wppconnect/wa-js': 3.19.3
       '@wppconnect/wa-version': 1.5.2729(encoding@0.1.13)
@@ -14049,10 +14059,10 @@ snapshots:
       lookpath: 1.2.3
       mime-types: 3.0.2
       puppeteer: 24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      puppeteer-extra: 3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
-      puppeteer-extra-plugin-stealth: 2.11.2(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
-      puppeteer-extra-plugin-user-data-dir: 2.4.1(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
-      puppeteer-extra-plugin-user-preferences: 2.4.1(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
+      puppeteer-extra: 3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
+      puppeteer-extra-plugin-stealth: 2.11.2(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
+      puppeteer-extra-plugin-user-data-dir: 2.4.1(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
+      puppeteer-extra-plugin-user-preferences: 2.4.1(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
       qrcode-terminal: 0.12.0
       reflect-metadata: 0.2.2
       rimraf: 3.0.2
@@ -14966,6 +14976,12 @@ snapshots:
       mitt: 3.0.1
       zod: 3.25.76
 
+  chromium-bidi@11.0.0(devtools-protocol@0.0.1534754):
+    dependencies:
+      devtools-protocol: 0.0.1534754
+      mitt: 3.0.1
+      zod: 3.25.76
+
   ci-info@3.9.0: {}
 
   ci-info@4.3.1: {}
@@ -15575,6 +15591,8 @@ snapshots:
   devtools-protocol@0.0.1312386: {}
 
   devtools-protocol@0.0.1521046: {}
+
+  devtools-protocol@0.0.1534754: {}
 
   dezalgo@1.0.4:
     dependencies:
@@ -19501,20 +19519,27 @@ snapshots:
       duplexify: 4.1.3
       split2: 4.2.0
 
-  pino-abstract-transport@1.2.0:
-    dependencies:
-      readable-stream: 4.7.0
-      split2: 4.2.0
-
   pino-abstract-transport@2.0.0:
     dependencies:
       split2: 4.2.0
 
   pino-std-serializers@4.0.0: {}
 
-  pino-std-serializers@6.2.2: {}
-
   pino-std-serializers@7.0.0: {}
+
+  pino@10.1.0:
+    dependencies:
+      '@pinojs/redact': 0.4.0
+      atomic-sleep: 1.0.0
+      on-exit-leak-free: 2.1.2
+      pino-abstract-transport: 2.0.0
+      pino-std-serializers: 7.0.0
+      process-warning: 5.0.0
+      quick-format-unescaped: 4.0.4
+      real-require: 0.2.0
+      safe-stable-stringify: 2.5.0
+      sonic-boom: 4.2.0
+      thread-stream: 3.1.0
 
   pino@7.11.0:
     dependencies:
@@ -19529,20 +19554,6 @@ snapshots:
       safe-stable-stringify: 2.5.0
       sonic-boom: 2.8.0
       thread-stream: 0.15.2
-
-  pino@8.21.0:
-    dependencies:
-      atomic-sleep: 1.0.0
-      fast-redact: 3.5.0
-      on-exit-leak-free: 2.1.2
-      pino-abstract-transport: 1.2.0
-      pino-std-serializers: 6.2.2
-      process-warning: 3.0.0
-      quick-format-unescaped: 4.0.4
-      real-require: 0.2.0
-      safe-stable-stringify: 2.5.0
-      sonic-boom: 3.8.1
-      thread-stream: 2.7.0
 
   pino@9.14.0:
     dependencies:
@@ -19652,8 +19663,6 @@ snapshots:
   process-nextick-args@2.0.1: {}
 
   process-warning@1.0.0: {}
-
-  process-warning@3.0.0: {}
 
   process-warning@5.0.0: {}
 
@@ -19863,15 +19872,22 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  puppeteer-extra-plugin-stealth@2.11.2(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))):
+  puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
+      '@puppeteer/browsers': 2.11.0
+      chromium-bidi: 11.0.0(devtools-protocol@0.0.1534754)
       debug: 4.4.3
-      puppeteer-extra-plugin: 3.2.3(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
-      puppeteer-extra-plugin-user-preferences: 2.4.1(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
-    optionalDependencies:
-      puppeteer-extra: 3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
+      devtools-protocol: 0.0.1534754
+      typed-query-selector: 2.12.0
+      webdriver-bidi-protocol: 0.3.9
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - bufferutil
+      - react-native-b4a
       - supports-color
+      - utf-8-validate
 
   puppeteer-extra-plugin-stealth@2.11.2(puppeteer-extra@3.3.6(puppeteer-core@22.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10))):
     dependencies:
@@ -19883,14 +19899,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  puppeteer-extra-plugin-user-data-dir@2.4.1(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))):
+  puppeteer-extra-plugin-stealth@2.11.2(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))):
     dependencies:
       debug: 4.4.3
-      fs-extra: 10.1.0
-      puppeteer-extra-plugin: 3.2.3(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
-      rimraf: 3.0.2
+      puppeteer-extra-plugin: 3.2.3(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
+      puppeteer-extra-plugin-user-preferences: 2.4.1(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
     optionalDependencies:
-      puppeteer-extra: 3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
+      puppeteer-extra: 3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
     transitivePeerDependencies:
       - supports-color
 
@@ -19905,14 +19920,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  puppeteer-extra-plugin-user-preferences@2.4.1(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))):
+  puppeteer-extra-plugin-user-data-dir@2.4.1(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))):
     dependencies:
       debug: 4.4.3
-      deepmerge: 4.3.1
-      puppeteer-extra-plugin: 3.2.3(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
-      puppeteer-extra-plugin-user-data-dir: 2.4.1(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
+      fs-extra: 10.1.0
+      puppeteer-extra-plugin: 3.2.3(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
+      rimraf: 3.0.2
     optionalDependencies:
-      puppeteer-extra: 3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
+      puppeteer-extra: 3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
     transitivePeerDependencies:
       - supports-color
 
@@ -19927,13 +19942,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  puppeteer-extra-plugin@3.2.3(puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))):
+  puppeteer-extra-plugin-user-preferences@2.4.1(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))):
     dependencies:
-      '@types/debug': 4.1.12
       debug: 4.4.3
-      merge-deep: 3.0.3
+      deepmerge: 4.3.1
+      puppeteer-extra-plugin: 3.2.3(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
+      puppeteer-extra-plugin-user-data-dir: 2.4.1(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)))
     optionalDependencies:
-      puppeteer-extra: 3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
+      puppeteer-extra: 3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
     transitivePeerDependencies:
       - supports-color
 
@@ -19947,14 +19963,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  puppeteer-extra@3.3.6(puppeteer-core@21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)):
+  puppeteer-extra-plugin@3.2.3(puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))):
     dependencies:
       '@types/debug': 4.1.12
       debug: 4.4.3
-      deepmerge: 4.3.1
+      merge-deep: 3.0.3
     optionalDependencies:
-      puppeteer: 24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      puppeteer-core: 21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)
+      puppeteer-extra: 3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
     transitivePeerDependencies:
       - supports-color
 
@@ -19966,6 +19981,17 @@ snapshots:
     optionalDependencies:
       puppeteer: 21.11.0(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)
       puppeteer-core: 22.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - supports-color
+
+  puppeteer-extra@3.3.6(puppeteer-core@24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(puppeteer@24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)):
+    dependencies:
+      '@types/debug': 4.1.12
+      debug: 4.4.3
+      deepmerge: 4.3.1
+    optionalDependencies:
+      puppeteer: 24.31.0(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      puppeteer-core: 24.32.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - supports-color
 
@@ -20781,10 +20807,6 @@ snapshots:
     dependencies:
       atomic-sleep: 1.0.0
 
-  sonic-boom@3.8.1:
-    dependencies:
-      atomic-sleep: 1.0.0
-
   sonic-boom@4.2.0:
     dependencies:
       atomic-sleep: 1.0.0
@@ -21211,10 +21233,6 @@ snapshots:
   thread-stream@0.15.2:
     dependencies:
       real-require: 0.1.0
-
-  thread-stream@2.7.0:
-    dependencies:
-      real-require: 0.2.0
 
   thread-stream@3.1.0:
     dependencies:
@@ -22042,7 +22060,7 @@ snapshots:
       bufferutil: 4.0.9
       utf-8-validate: 5.0.10
 
-  wtfnode@0.9.4: {}
+  wtfnode@0.10.1: {}
 
   xdg-basedir@5.1.0: {}
 
