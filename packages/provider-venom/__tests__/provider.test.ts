@@ -579,7 +579,7 @@ describe('#VenomProvider', () => {
             venomProvider.vendor = null as any
 
             // Act & Assert
-            expect(() => venomProvider['listenOnEvents'](null as any)).toThrowError('Vendor should not return empty')
+            expect(() => venomProvider['listenOnEvents'](null as any)).toThrow('Vendor should not return empty')
         })
 
         test('Set vendor when not defined', () => {

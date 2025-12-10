@@ -287,7 +287,7 @@ describe('#MetaCoreVendor ', () => {
             const promise = metaCoreVendor.processMessage(mockMessage)
 
             // Assert
-            await expect(promise).rejects.toThrowError('Test error')
+            await expect(promise).rejects.toThrow('Test error')
         })
     })
 

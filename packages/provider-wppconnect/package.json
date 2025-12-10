@@ -49,7 +49,7 @@
         "sinon": "^17.0.1"
     },
     "dependencies": {
-        "@jest/globals": "^29.7.0",
+        "@jest/globals": "^30.2.0",
         "@wppconnect-team/wppconnect": "~1.37.8",
         "body-parser": "^1.20.2",
         "polka": "^0.5.2",

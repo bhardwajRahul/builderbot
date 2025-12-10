@@ -209,7 +209,7 @@ describe('#MetaProvider', () => {
                     longitude: fakeLocalization.long_number,
                     latitude: fakeLocalization.lat_number,
                 },
-            })
+            } as any)
         })
     })
 
@@ -266,7 +266,7 @@ describe('#MetaProvider', () => {
                     message_id: fakeReaction.message_id,
                     emoji: fakeReaction.emoji,
                 },
-            })
+            } as any)
         })
     })
 
@@ -298,7 +298,7 @@ describe('#MetaProvider', () => {
             const fakePathVideo = null
 
             // Act & Assert
-            await expect(metaProvider.sendAudio(fakeRecipient, fakePathVideo)).rejects.toThrowError(
+            await expect(metaProvider.sendAudio(fakeRecipient, fakePathVideo)).rejects.toThrow(
                 'MEDIA_INPUT_NULL_: null'
             )
         })
@@ -329,7 +329,7 @@ describe('#MetaProvider', () => {
             const fakeCaption = 'This is a file'
 
             // Act & Assert
-            await expect(metaProvider.sendFile(fakeRecipient, fakeMediaInput, fakeCaption)).rejects.toThrowError(
+            await expect(metaProvider.sendFile(fakeRecipient, fakeMediaInput, fakeCaption)).rejects.toThrow(
                 'MEDIA_INPUT_NULL_: null'
             )
         })
@@ -903,7 +903,7 @@ describe('#MetaProvider', () => {
             const fakeRecipient = '1234567890'
 
             // Act & Assert
-            await expect(metaProvider.sendVideo(fakeRecipient, null, 'This is a video caption')).rejects.toThrowError(
+            await expect(metaProvider.sendVideo(fakeRecipient, null, 'This is a video caption')).rejects.toThrow(
                 'MEDIA_INPUT_NULL_: null'
             )
         })
@@ -965,7 +965,7 @@ describe('#MetaProvider', () => {
             const fakeRecipient = '1234567890'
 
             // Act & Assert
-            await expect(metaProvider.sendImage(fakeRecipient, null, 'This is a image caption')).rejects.toThrowError(
+            await expect(metaProvider.sendImage(fakeRecipient, null, 'This is a image caption')).rejects.toThrow(
                 'MEDIA_INPUT_NULL_: null'
             )
         })

@@ -441,9 +441,7 @@ describe('#WPPConnectProvider', () => {
             wPPConnectProvider.vendor = null as any
 
             // Act & Assert
-            expect(() => wPPConnectProvider['listenOnEvents'](null as any)).toThrowError(
-                'Vendor should not return empty'
-            )
+            expect(() => wPPConnectProvider['listenOnEvents'](null as any)).toThrow('Vendor should not return empty')
         })
 
         test('Set vendor when not defined', () => {

@@ -267,9 +267,7 @@ describe('#TwilioProvider', () => {
             const mediaInput: any = null
 
             // Act & Assert
-            await expect(twilioProvider.sendMedia(number, message, mediaInput)).rejects.toThrowError(
-                'Media cannot be null'
-            )
+            await expect(twilioProvider.sendMedia(number, message, mediaInput)).rejects.toThrow('Media cannot be null')
         })
     })
 
