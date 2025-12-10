@@ -23,11 +23,11 @@
         "url": "https://github.com/codigoencasa/bot-whatsapp/tree/main/packages/create-builderbot"
     },
     "devDependencies": {
-        "@rollup/plugin-commonjs": "^25.0.7",
-        "@rollup/plugin-node-resolve": "^15.2.3",
+        "@rollup/plugin-commonjs": "^29.0.0",
+        "@rollup/plugin-node-resolve": "^16.0.3",
         "@rollup/plugin-terser": "^0.4.4",
-        "@types/node": "^20.12.3",
-        "rimraf": "^5.0.5",
+        "@types/node": "^24.10.2",
+        "rimraf": "^6.1.2",
         "rollup-plugin-typescript2": "^0.36.0"
     },
     "gitHead": "1aeef80914d0fa6d23f8a5787998559a5912f110"

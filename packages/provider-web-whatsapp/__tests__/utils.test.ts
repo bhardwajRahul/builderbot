@@ -1,11 +1,11 @@
+import { utils } from '@builderbot/bot'
 import { describe, expect, jest, test } from '@jest/globals'
-import fsExtra from 'fs-extra'
-import { join } from 'path'
-import qr from 'qr-image'
 import { createWriteStream } from 'fs'
 import fs from 'fs'
-import { utils } from '@builderbot/bot'
+import fsExtra from 'fs-extra'
 import os from 'os'
+import { join } from 'path'
+import qr from 'qr-image'
 
 import {
     emptyDirSessions,

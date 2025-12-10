@@ -1,6 +1,6 @@
+import { utils } from '@builderbot/bot'
 import { describe, expect, jest, test } from '@jest/globals'
 import fsExtra from 'fs-extra'
-import { utils } from '@builderbot/bot'
 
 import {
     emptyDirSessions,

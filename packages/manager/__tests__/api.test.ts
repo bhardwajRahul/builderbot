@@ -1,12 +1,13 @@
+import type { IncomingMessage, ServerResponse } from 'http'
 import { test } from 'uvu'
 import * as assert from 'uvu/assert'
+
 import { BotManagerApi } from '../src/api'
 import { BotManager } from '../src/bot-manager'
 import { FlowRegistry } from '../src/flow-registry'
-import type { IncomingMessage, ServerResponse } from 'http'
 
 // Mock flow for testing
-const createMockFlow = () => ({ addAnswer: () => {} } as any)
+const createMockFlow = () => ({ addAnswer: () => {} }) as any
 
 // Helper to create a mock BotManager with minimal functionality
 const createMockBotManager = () => {

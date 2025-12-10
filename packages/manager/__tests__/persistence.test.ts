@@ -1,7 +1,8 @@
-import { test } from 'uvu'
-import * as assert from 'uvu/assert'
 import { existsSync, unlinkSync, mkdirSync, rmdirSync } from 'fs'
 import { join } from 'path'
+import { test } from 'uvu'
+import * as assert from 'uvu/assert'
+
 import {
     PersistenceManager,
     getDefaultPersistence,

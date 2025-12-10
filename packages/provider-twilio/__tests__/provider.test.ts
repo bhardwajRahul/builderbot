@@ -1,7 +1,8 @@
-import { describe, expect, test, jest, beforeEach } from '@jest/globals'
 import { utils } from '@builderbot/bot'
-import { TwilioProvider } from '../src/twilio/provider'
+import { describe, expect, test, jest, beforeEach } from '@jest/globals'
+
 import { TwilioCoreVendor } from '../src/twilio/core'
+import { TwilioProvider } from '../src/twilio/provider'
 
 jest.mock('twilio', () => ({
     __esModule: true,
@@ -266,9 +267,7 @@ describe('#TwilioProvider', () => {
             const mediaInput: any = null
 
             // Act & Assert
-            await expect(twilioProvider.sendMedia(number, message, mediaInput)).rejects.toThrowError(
-                'Media cannot be null'
-            )
+            await expect(twilioProvider.sendMedia(number, message, mediaInput)).rejects.toThrow('Media cannot be null')
         })
     })
 

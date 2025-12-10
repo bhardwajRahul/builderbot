@@ -1,5 +1,6 @@
 import { test } from 'uvu'
 import * as assert from 'uvu/assert'
+
 import { BotManager } from '../src/bot-manager'
 
 // Mock the external dependencies

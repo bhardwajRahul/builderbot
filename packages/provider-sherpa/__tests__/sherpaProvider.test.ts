@@ -1,11 +1,12 @@
+import { utils } from '@builderbot/bot'
 import { beforeEach, describe, expect, jest, test } from '@jest/globals'
-import { SherpaProvider } from '../src'
-import path from 'path'
-import { IStickerOptions } from 'wa-sticker-formatter'
 import fs from 'fs'
 import mime from 'mime-types'
-import { utils } from '@builderbot/bot'
+import path from 'path'
+import { IStickerOptions } from 'wa-sticker-formatter'
 import { useMultiFileAuthState } from 'whaileys'
+
+import { SherpaProvider } from '../src'
 
 const phoneNumber = '+123456789'
 

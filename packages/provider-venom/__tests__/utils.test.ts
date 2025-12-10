@@ -1,4 +1,8 @@
+import { utils } from '@builderbot/bot'
 import { describe, expect, jest, test } from '@jest/globals'
+import { createWriteStream } from 'fs'
+import fsExtra from 'fs-extra'
+
 import {
     emptyDirSessions,
     notMatches,
@@ -9,9 +13,6 @@ import {
     venomisValidNumber,
     writeFilePromise,
 } from '../src/utils'
-import fsExtra from 'fs-extra'
-import { utils } from '@builderbot/bot'
-import { createWriteStream } from 'fs'
 
 // const httpsMock = {
 //     get: stub(),

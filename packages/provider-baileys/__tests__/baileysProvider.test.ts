@@ -1,11 +1,12 @@
+import { utils } from '@builderbot/bot'
 import { beforeEach, describe, expect, jest, test } from '@jest/globals'
-import { BaileysProvider } from '../src'
-import path from 'path'
-import { IStickerOptions } from 'wa-sticker-formatter'
+import { useMultiFileAuthState } from 'baileys'
 import fs from 'fs'
 import mime from 'mime-types'
-import { utils } from '@builderbot/bot'
-import { useMultiFileAuthState } from 'baileys'
+import path from 'path'
+import { IStickerOptions } from 'wa-sticker-formatter'
+
+import { BaileysProvider } from '../src'
 
 const phoneNumber = '+123456789'
 

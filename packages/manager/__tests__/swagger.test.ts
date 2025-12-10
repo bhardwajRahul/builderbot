@@ -1,5 +1,6 @@
 import { test } from 'uvu'
 import * as assert from 'uvu/assert'
+
 import { openApiSpec, generateSwaggerHtml } from '../src/swagger'
 
 // ============ OpenAPI Spec Structure Tests ============

@@ -1,10 +1,11 @@
 import { test } from 'uvu'
 import * as assert from 'uvu/assert'
+
 import { FlowRegistry, type FlowDefinition } from '../src/flow-registry'
 import type { CreateFlowInput } from '../src/schemas'
 
 // Mock flow for testing
-const createMockFlow = () => ({ addAnswer: () => {} } as any)
+const createMockFlow = () => ({ addAnswer: () => {} }) as any
 
 // ============ Constructor Tests ============
 

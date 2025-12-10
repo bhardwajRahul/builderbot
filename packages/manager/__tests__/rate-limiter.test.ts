@@ -1,7 +1,8 @@
+import type { IncomingMessage, ServerResponse } from 'http'
 import { test } from 'uvu'
 import * as assert from 'uvu/assert'
+
 import { RateLimiter, type RateLimiterConfig } from '../src/rate-limiter'
-import type { IncomingMessage, ServerResponse } from 'http'
 
 // Helper to create mock request
 const createMockRequest = (

@@ -1,10 +1,11 @@
-import { baileyCleanNumber, baileyGenerateImage, baileyIsValidNumber, emptyDirSessions } from '../src/utils'
-import { expect, describe, test, jest } from '@jest/globals'
 import { utils } from '@builderbot/bot'
+import { expect, describe, test, jest } from '@jest/globals'
 import { createWriteStream } from 'fs'
-import * as qr from 'qr-image'
-import { join } from 'path'
 import fsExtra from 'fs-extra'
+import { join } from 'path'
+import * as qr from 'qr-image'
+
+import { baileyCleanNumber, baileyGenerateImage, baileyIsValidNumber, emptyDirSessions } from '../src/utils'
 
 jest.mock('qr-image', () => ({
     image: jest.fn(() => ({
