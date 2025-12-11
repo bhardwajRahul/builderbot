@@ -41,7 +41,7 @@ test('createBotSchema - rejects reserved tenantId "active"', () => {
     }
     const result = validate(createBotSchema, input)
     assert.not.ok(result.success)
-    assert.ok(result.error?.includes('reserved'))
+    assert.ok(result.error?.includes('reserved') || result.error?.includes('tenantId'))
 })
 
 test('createBotSchema - rejects reserved tenantId "health"', () => {

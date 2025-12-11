@@ -13,10 +13,9 @@ const tenantIdSchema = z
     .min(1, 'tenantId is required')
     .max(50, 'tenantId must be 50 characters or less')
     .regex(/^[a-zA-Z0-9-_]+$/, 'tenantId can only contain letters, numbers, hyphens and underscores')
-    .refine(
-        (val: string) => !RESERVED_TENANT_IDS.includes(val as (typeof RESERVED_TENANT_IDS)[number]),
-        (val: string) => ({ message: `"${val}" is a reserved tenantId and cannot be used` })
-    )
+    .refine((val: string) => !RESERVED_TENANT_IDS.includes(val as (typeof RESERVED_TENANT_IDS)[number]), {
+        message: 'is a reserved tenantId and cannot be used',
+    })
 
 /**
  * Schema for creating a new bot
@@ -31,7 +30,7 @@ export const createBotSchema = z.object({
         .min(1024, 'port must be 1024 or higher')
         .max(65535, 'port must be 65535 or lower')
         .optional(),
-    providerOptions: z.record(z.any()).optional(),
+    providerOptions: z.record(z.string(), z.any()).optional(),
 })
 
 /**
@@ -97,10 +96,9 @@ export const createFlowSchema = z.object({
         .min(1, 'id is required')
         .max(50, 'id must be 50 characters or less')
         .regex(/^[a-zA-Z0-9-_]+$/, 'id can only contain letters, numbers, hyphens and underscores')
-        .refine(
-            (val: string) => !RESERVED_FLOW_IDS.includes(val as (typeof RESERVED_FLOW_IDS)[number]),
-            (val: string) => ({ message: `"${val}" is a reserved flow id` })
-        ),
+        .refine((val: string) => !RESERVED_FLOW_IDS.includes(val as (typeof RESERVED_FLOW_IDS)[number]), {
+            message: 'is a reserved flow id',
+        }),
     /** Display name for the flow */
     name: z.string().min(1).max(100),
     /** Keywords that trigger this flow */
@@ -152,7 +150,9 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): ValidationRe
         }
     }
 
-    const errors = result.error.errors.map((err: z.ZodIssue) => ({
+    // Zod v4 uses 'issues'
+    const zodErrors = result.error.issues
+    const errors = zodErrors.map((err: z.ZodIssue) => ({
         field: err.path.join('.') || 'root',
         message: err.message,
     }))

@@ -31,7 +31,7 @@
     "homepage": "https://github.com/codigoencasa/bot-whatsapp#readme",
     "dependencies": {
         "@builderbot/bot": "workspace:*",
-        "mongodb": "^4.17.2"
+        "mongodb": "^7.0.0"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^29.0.0",

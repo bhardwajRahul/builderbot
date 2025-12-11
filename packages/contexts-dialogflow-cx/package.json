@@ -30,7 +30,7 @@
     },
     "dependencies": {
         "@builderbot/bot": "workspace:*",
-        "@google-cloud/dialogflow-cx": "^4.4.0"
+        "@google-cloud/dialogflow-cx": "^5.5.0"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^29.0.0",

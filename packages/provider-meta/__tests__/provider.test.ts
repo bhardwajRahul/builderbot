@@ -1072,4 +1072,57 @@ describe('#MetaProvider', () => {
             expect(result).toContain(extension)
         })
     })
+
+    describe('#sendPresenceUpdate', () => {
+        test('should send typing_on status by default', async () => {
+            // Arrange
+            const fakeRecipient = '1234567890'
+            jest.spyOn(metaProvider, 'sendMessageToApi').mockResolvedValue({ success: true })
+
+            // Act
+            await metaProvider.sendPresenceUpdate(fakeRecipient)
+
+            // Assert
+            expect(metaProvider.sendMessageToApi).toHaveBeenCalledWith({
+                messaging_product: 'whatsapp',
+                recipient_type: 'individual',
+                to: fakeRecipient,
+                type: 'typing_on',
+            })
+        })
+
+        test('should send typing_on status when explicitly specified', async () => {
+            // Arrange
+            const fakeRecipient = '1234567890'
+            jest.spyOn(metaProvider, 'sendMessageToApi').mockResolvedValue({ success: true })
+
+            // Act
+            await metaProvider.sendPresenceUpdate(fakeRecipient, 'typing_on')
+
+            // Assert
+            expect(metaProvider.sendMessageToApi).toHaveBeenCalledWith({
+                messaging_product: 'whatsapp',
+                recipient_type: 'individual',
+                to: fakeRecipient,
+                type: 'typing_on',
+            })
+        })
+
+        test('should send typing_off status when specified', async () => {
+            // Arrange
+            const fakeRecipient = '1234567890'
+            jest.spyOn(metaProvider, 'sendMessageToApi').mockResolvedValue({ success: true })
+
+            // Act
+            await metaProvider.sendPresenceUpdate(fakeRecipient, 'typing_off')
+
+            // Assert
+            expect(metaProvider.sendMessageToApi).toHaveBeenCalledWith({
+                messaging_product: 'whatsapp',
+                recipient_type: 'individual',
+                to: fakeRecipient,
+                type: 'typing_off',
+            })
+        })
+    })
 })

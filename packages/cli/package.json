@@ -11,7 +11,7 @@
         "test:coverage": "npx c8 npm run test"
     },
     "devDependencies": {
-        "@clack/prompts": "^0.7.0",
+        "@clack/prompts": "^0.11.0",
         "@rollup/plugin-commonjs": "^29.0.0",
         "@rollup/plugin-node-resolve": "^16.0.3",
         "@rollup/plugin-terser": "^0.4.4",

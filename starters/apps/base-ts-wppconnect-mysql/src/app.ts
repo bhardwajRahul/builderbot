@@ -122,7 +122,6 @@ const main = async () => {
             return res.end(JSON.stringify({ status: 'ok', blacklist }))
         })
     )
-    
 
     httpServer(+PORT)
 }

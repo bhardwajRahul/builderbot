@@ -50,11 +50,11 @@
         "sinon": "^17.0.1"
     },
     "dependencies": {
-        "body-parser": "^1.20.2",
+        "body-parser": "^2.2.1",
         "fluent-ffmpeg": "^2.1.2",
-        "mime-types": "^2.1.35",
+        "mime-types": "^3.0.2",
         "polka": "^0.5.2",
-        "twilio": "~4.20.0"
+        "twilio": "~5.10.7"
     },
     "gitHead": "1aeef80914d0fa6d23f8a5787998559a5912f110"
 }

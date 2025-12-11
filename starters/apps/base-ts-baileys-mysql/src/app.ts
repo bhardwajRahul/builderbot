@@ -62,7 +62,7 @@ const main = async () => {
     const adapterFlow = createFlow([welcomeFlow, registerFlow, fullSamplesFlow])
     
     const adapterProvider = createProvider(Provider, 
-		{ version: [2, 3000, 1027934701] as any } 
+		{ version: [2, 3000, 1027934701] } 
 	)
     const adapterDB = new Database({
         host: process.env.MYSQL_DB_HOST,
@@ -124,7 +124,6 @@ const main = async () => {
             return res.end(JSON.stringify({ status: 'ok', blacklist }))
         })
     )
-    
 
     httpServer(+PORT)
 }

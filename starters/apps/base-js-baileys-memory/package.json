@@ -16,8 +16,8 @@
   },
   "devDependencies": {
     "eslint-plugin-builderbot": "latest",
-    "eslint": "^8.57.0",
-    "nodemon": "^3.1.0"
+    "eslint": "^9.39.1",
+    "nodemon": "^3.1.11"
   },
   "author": "",
   "license": "ISC"
