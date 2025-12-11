@@ -33,6 +33,7 @@ import {
     proto,
     useMultiFileAuthState,
 } from './sherpaWrapper'
+import type { WALogger } from './sherpaWrapper'
 import type { SherpaGlobalVendorArgs } from './type'
 import {
     baileyGenerateImage,
@@ -254,7 +255,7 @@ class SherpaProvider extends ProviderClass<WASocket> {
     protected initVendor = async () => {
         const NAME_DIR_SESSION = `${this.globalVendorArgs.name}_sessions`
         const { state, saveCreds } = await useMultiFileAuthState(NAME_DIR_SESSION)
-        const loggerSherpa = pino({ level: 'fatal' })
+        const loggerSherpa = pino({ level: 'fatal' }) as unknown as WALogger
 
         this.saveCredsGlobal = saveCreds
 

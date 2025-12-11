@@ -12,9 +12,11 @@ import makeWASocketOther, {
     MessageUpsertType,
     isJidGroup,
     isJidBroadcast,
+    SocketConfig,
 } from 'whaileys'
 import { proto } from 'whaileys/WAProto'
 
+export type WALogger = SocketConfig['logger']
 export {
     makeWASocketOther,
     useMultiFileAuthState,
