@@ -432,6 +432,23 @@ class SherpaProvider extends ProviderClass<WASocket> {
     }
 
     /**
+     * Extrae el número de teléfono (from) de un mensaje
+     * @param messageCtx - Contexto del mensaje
+     * @returns El número de teléfono extraído
+     */
+    private extractFromFromMessage(messageCtx: WAMessage): string | undefined {
+        const remoteJid = (messageCtx?.key as any)?.remoteJid
+        const remoteJidAlt = (messageCtx?.key as any)?.remoteJidAlt
+        const senderPhoneNumber = messageCtx?.key?.senderPn
+        const senderLid = messageCtx?.key?.senderLid
+
+        // Si remoteJid contiene @lid, usar remoteJidAlt si existe, sino extraer el número de remoteJid
+        const fromParse = remoteJid?.includes('@lid') ? remoteJidAlt || remoteJid?.split('@')[0] : remoteJid
+
+        return senderPhoneNumber ? senderPhoneNumber : senderLid ? senderLid : fromParse
+    }
+
+    /**
      * Map native events that the Provider class expects
      * to have a standard set of events
      * @returns
@@ -557,21 +574,8 @@ class SherpaProvider extends ProviderClass<WASocket> {
                         }
                     }
 
-                    // Buscar siempre el que tenga formato @s.whatsapp.net (puede estar en remoteJid o remoteJidAlt)
-                    const remoteJid = (messageCtx?.key as any)?.remoteJid
-                    const remoteJidAlt = (messageCtx?.key as any)?.remoteJidAlt
-                    const senderPhoneNumber = messageCtx?.key?.senderPn
-                    const senderLid = messageCtx?.key?.senderLid
-                    const fromParse = remoteJid?.includes('@lid') ? remoteJidAlt : remoteJid
-                    const from = senderPhoneNumber ? senderPhoneNumber : senderLid ? senderLid : fromParse
-
-                    console.log('from', from)
-                    console.log('senderPhoneNumber', senderPhoneNumber)
-                    console.log('senderLid', senderLid)
-                    console.log('fromParse', fromParse)
-                    console.log('remoteJid', remoteJid)
-                    console.log('remoteJidAlt', remoteJidAlt)
-                    console.log('messageCtx', messageCtx)
+                    // Extraer el número de teléfono del mensaje
+                    const from = this.extractFromFromMessage(messageCtx)
 
                     let payload = {
                         ...messageCtx,
