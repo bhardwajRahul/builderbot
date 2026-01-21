@@ -1,6 +1,6 @@
 {
     "name": "@builderbot/bot",
-    "version": "1.3.15-alpha.1",
+    "version": "1.3.15-alpha.6",
     "description": "core typescript",
     "author": "Leifer Mendez <leifer33@gmail.com>",
     "homepage": "https://github.com/codigoencasa/bot-whatsapp#readme",
@@ -62,5 +62,5 @@
     "optionalDependencies": {
         "sharp": "0.33.3"
     },
-    "gitHead": "1aeef80914d0fa6d23f8a5787998559a5912f110"
+    "gitHead": "39482bbb20ee8f383cae6ab9ae74375b0973a21e"
 }

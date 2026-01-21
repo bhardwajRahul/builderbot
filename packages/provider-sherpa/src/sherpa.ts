@@ -432,6 +432,19 @@ class SherpaProvider extends ProviderClass<WASocket> {
     }
 
     /**
+     * Extrae el número de teléfono (from) de un mensaje
+     * @param messageCtx - Contexto del mensaje
+     * @returns El número de teléfono extraído
+     */
+    private extractFromFromMessage(messageCtx: WAMessage): string | undefined {
+        const remoteJid = (messageCtx?.key as any)?.remoteJid
+        const remoteJidAlt = (messageCtx?.key as any)?.remoteJidAlt
+        // Si remoteJid contiene @lid, usar remoteJidAlt si existe, sino extraer el número de remoteJid
+        const fromParse = remoteJid?.includes('@lid') ? remoteJidAlt || remoteJid?.split('@')[0] : remoteJid
+        return fromParse
+    }
+
+    /**
      * Map native events that the Provider class expects
      * to have a standard set of events
      * @returns
@@ -557,16 +570,14 @@ class SherpaProvider extends ProviderClass<WASocket> {
                         }
                     }
 
-                    // Buscar siempre el que tenga formato @s.whatsapp.net (puede estar en remoteJid o remoteJidAlt)
-                    const remoteJid = (messageCtx?.key as any)?.remoteJid
-                    const remoteJidAlt = (messageCtx?.key as any)?.remoteJidAlt
-                    const fromParse = remoteJid?.includes('@lid') ? remoteJidAlt : remoteJid
+                    // Extraer el número de teléfono del mensaje
+                    const from = this.extractFromFromMessage(messageCtx)
 
                     let payload = {
                         ...messageCtx,
                         body: textToBody,
                         name: messageCtx?.pushName,
-                        from: baileyCleanNumber(fromParse),
+                        from: baileyCleanNumber(from),
                     }
 
                     if (messageCtx.message?.locationMessage) {

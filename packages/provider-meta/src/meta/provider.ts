@@ -152,7 +152,8 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
      */
     saveFile = async (ctx: Partial<Message & BotContext>, options: SaveFileOptions = {}): Promise<string> => {
         try {
-            const { buffer, extension } = await downloadFile(ctx?.url, this.globalVendorArgs.jwtToken)
+            const url = ctx?.url ?? ctx?.fileData?.url
+            const { buffer, extension } = await downloadFile(url, this.globalVendorArgs.jwtToken)
             const fileName = `file-${Date.now()}.${extension}`
             const pathFile = join(options?.path ?? tmpdir(), fileName)
             await writeFile(pathFile, buffer)
@@ -173,7 +174,8 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
      */
     saveBuffer = async (ctx: Partial<Message & BotContext>, options: SaveFileOptions = {}): Promise<Buffer> => {
         try {
-            const { buffer } = await downloadFile(ctx?.url, this.globalVendorArgs.jwtToken)
+            const url = ctx?.url ?? ctx?.fileData?.url
+            const { buffer } = await downloadFile(url, this.globalVendorArgs.jwtToken)
             return buffer
         } catch (err) {
             console.log(`[Error]:`, err.message)
