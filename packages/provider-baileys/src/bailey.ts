@@ -255,7 +255,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
     }
 
     protected getMessage = async (key: { remoteJid: string; id: string }): Promise<proto.IMessage | undefined> => {
-        if (!key.id) return undefined
+        if (!key.id) return {}
 
         // Intentar recuperar el mensaje del cache
         const cachedMessage = this.messageCache?.get<proto.IMessage>(`msg:${key.id}`)
@@ -263,7 +263,7 @@ class BaileysProvider extends ProviderClass<WASocket> {
             return cachedMessage
         }
 
-        return undefined
+        return {}
     }
 
     protected saveCredsGlobal: (() => Promise<void>) | null = null
