@@ -65,6 +65,7 @@
     "packages/provider-wppconnect",
     "packages/provider-telegram",
     "packages/provider-venom",
+    "packages/provider-email",
     "packages/contexts-dialogflow",
     "packages/contexts-dialogflow-cx"
   ],
