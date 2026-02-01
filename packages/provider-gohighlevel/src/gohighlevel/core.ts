@@ -4,17 +4,20 @@ import type Queue from 'queue-promise'
 
 import { processIncomingMessage } from '../utils/processIncomingMsg'
 import type { TokenManager } from '../utils/tokenManager'
+import { verifyWebhookSignature, extractSignatureFromHeaders } from '../utils/webhookVerification'
 
 import type { GHLGlobalVendorArgs, GHLIncomingWebhook, GHLMessage } from '~/types'
 
 export class GoHighLevelCoreVendor extends EventEmitter {
     queue: Queue
     tokenManager: TokenManager
+    webhookSecret?: string
 
-    constructor(_queue: Queue, _tokenManager: TokenManager) {
+    constructor(_queue: Queue, _tokenManager: TokenManager, webhookSecret?: string) {
         super()
         this.queue = _queue
         this.tokenManager = _tokenManager
+        this.webhookSecret = webhookSecret
     }
 
     public indexHome: polka.Middleware = (_, res) => {
@@ -44,6 +47,32 @@ export class GoHighLevelCoreVendor extends EventEmitter {
 
     public incomingMsg: polka.Middleware = async (req: any, res: any) => {
         const body = req?.body as GHLIncomingWebhook
+
+        // Verify webhook signature if secret is configured
+        if (this.webhookSecret) {
+            const signature = extractSignatureFromHeaders(req.headers)
+            const rawBody = req.rawBody || JSON.stringify(body)
+
+            if (!signature) {
+                this.emit('notice', {
+                    title: 'GHL WEBHOOK WARNING',
+                    instructions: ['Webhook signature missing from request headers'],
+                })
+                res.statusCode = 401
+                res.end(JSON.stringify({ error: 'Missing webhook signature' }))
+                return
+            }
+
+            if (!verifyWebhookSignature(rawBody, signature, this.webhookSecret)) {
+                this.emit('notice', {
+                    title: 'GHL WEBHOOK WARNING',
+                    instructions: ['Invalid webhook signature - request rejected'],
+                })
+                res.statusCode = 401
+                res.end(JSON.stringify({ error: 'Invalid webhook signature' }))
+                return
+            }
+        }
 
         if (!body || !body.type) {
             res.statusCode = 400

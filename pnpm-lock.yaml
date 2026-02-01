@@ -885,6 +885,73 @@ importers:
                 specifier: ^5.9.3
                 version: 5.9.3
 
+    packages/provider-gohighlevel:
+        dependencies:
+            axios:
+                specifier: ^1.13.2
+                version: 1.13.2
+            body-parser:
+                specifier: ^2.2.1
+                version: 2.2.1
+            file-type:
+                specifier: ^19.0.0
+                version: 19.6.0
+            form-data:
+                specifier: ^4.0.5
+                version: 4.0.5
+            mime-types:
+                specifier: ^3.0.2
+                version: 3.0.2
+            polka:
+                specifier: ^0.5.2
+                version: 0.5.2
+            queue-promise:
+                specifier: ^2.2.1
+                version: 2.2.1
+        devDependencies:
+            '@builderbot/bot':
+                specifier: ^1.3.15-alpha.6
+                version: 1.3.15
+            '@jest/globals':
+                specifier: ^30.2.0
+                version: 30.2.0
+            '@rollup/plugin-commonjs':
+                specifier: ^29.0.0
+                version: 29.0.0(rollup@4.53.3)
+            '@rollup/plugin-json':
+                specifier: ^6.1.0
+                version: 6.1.0(rollup@4.53.3)
+            '@rollup/plugin-node-resolve':
+                specifier: ^16.0.3
+                version: 16.0.3(rollup@4.53.3)
+            '@rollup/plugin-terser':
+                specifier: ^0.4.4
+                version: 0.4.4(rollup@4.53.3)
+            '@types/jest':
+                specifier: ^30.0.0
+                version: 30.0.0
+            '@types/node':
+                specifier: ^24.10.2
+                version: 24.10.2
+            '@types/polka':
+                specifier: ^0.5.7
+                version: 0.5.8
+            jest:
+                specifier: ^30.2.0
+                version: 30.2.0(@types/node@24.10.2)(ts-node@10.9.2(@types/node@24.10.2)(typescript@5.9.3))
+            rimraf:
+                specifier: ^6.1.2
+                version: 6.1.2
+            rollup-plugin-typescript2:
+                specifier: ^0.36.0
+                version: 0.36.0(rollup@4.53.3)(typescript@5.9.3)
+            ts-jest:
+                specifier: ^29.4.6
+                version: 29.4.6(@babel/core@7.28.5)(@jest/transform@30.2.0)(@jest/types@30.2.0)(babel-jest@30.2.0(@babel/core@7.28.5))(jest-util@30.2.0)(jest@30.2.0(@types/node@24.10.2)(ts-node@10.9.2(@types/node@24.10.2)(typescript@5.9.3)))(typescript@5.9.3)
+            tslib:
+                specifier: ^2.6.2
+                version: 2.8.1
+
     packages/provider-instagram:
         dependencies:
             axios:

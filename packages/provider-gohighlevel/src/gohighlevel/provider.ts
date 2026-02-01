@@ -2,17 +2,17 @@ import { ProviderClass, utils } from '@builderbot/bot'
 import type { Vendor } from '@builderbot/bot/dist/provider/interface/provider'
 import type { BotContext, Button, SendOptions } from '@builderbot/bot/dist/types'
 import axios from 'axios'
-import mime from 'mime-types'
 import { writeFile } from 'fs/promises'
+import mime from 'mime-types'
 import { tmpdir } from 'os'
 import { join, resolve } from 'path'
 import Queue from 'queue-promise'
 
 import { GoHighLevelCoreVendor } from './core'
+import { ContactResolver } from '../utils/contactResolver'
 import { downloadFile } from '../utils/downloadFile'
 import { parseGHLNumber } from '../utils/number'
 import { TokenManager } from '../utils/tokenManager'
-import { ContactResolver } from '../utils/contactResolver'
 
 import type { GoHighLevelInterface } from '~/interface/gohighlevel'
 import type { GHLGlobalVendorArgs, GHLMessage, GHLSendMessageBody, SaveFileOptions } from '~/types'
@@ -59,6 +59,11 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
         )
         this.contactResolver = new ContactResolver(this.globalVendorArgs.apiVersion)
 
+        // Forward ContactResolver errors to provider notice events
+        this.contactResolver.on('error', (payload) => {
+            this.emit('notice', payload)
+        })
+
         if (this.globalVendorArgs.accessToken) {
             this.tokenManager.setTokens({
                 access_token: this.globalVendorArgs.accessToken,
@@ -86,10 +91,7 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
                 })
                 this.emit('require_action', {
                     title: 'Authorization Required',
-                    instructions: [
-                        'GoHighLevel requires OAuth2 authorization.',
-                        `Visit: ${authUrl}`,
-                    ],
+                    instructions: ['GoHighLevel requires OAuth2 authorization.', `Visit: ${authUrl}`],
                 })
                 return
             }
@@ -110,7 +112,7 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
     }
 
     protected initVendor(): Promise<any> {
-        const vendor = new GoHighLevelCoreVendor(this.queue, this.tokenManager)
+        const vendor = new GoHighLevelCoreVendor(this.queue, this.tokenManager, this.globalVendorArgs.webhookSecret)
         this.server = this.server
             .use((req, _, next) => {
                 req['globalVendorArgs'] = this.globalVendorArgs
@@ -156,7 +158,10 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
             await writeFile(pathFile, buffer)
             return resolve(pathFile)
         } catch (err) {
-            console.error(`[GoHighLevel] saveFile error:`, err.message)
+            this.emit('notice', {
+                title: 'GHL SAVE FILE ERROR',
+                instructions: [`Failed to save file: ${err.message}`],
+            })
             return 'ERROR'
         }
     }
@@ -198,11 +203,7 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
 
     resolveContactId = async (phone: string): Promise<string | null> => {
         const token = await this.tokenManager.getValidToken()
-        return this.contactResolver.resolveContactId(
-            parseGHLNumber(phone),
-            this.globalVendorArgs.locationId,
-            token
-        )
+        return this.contactResolver.resolveContactId(parseGHLNumber(phone), this.globalVendorArgs.locationId, token)
     }
 
     sendText = async (to: string, message: string): Promise<any> => {
@@ -279,17 +280,13 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
 
     sendMessageToApi = async (body: GHLSendMessageBody): Promise<any> => {
         const token = await this.tokenManager.getValidToken()
-        const response = await axios.post(
-            `${GHL_API_URL}/conversations/messages`,
-            body,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Version: this.globalVendorArgs.apiVersion,
-                    'Content-Type': 'application/json',
-                },
-            }
-        )
+        const response = await axios.post(`${GHL_API_URL}/conversations/messages`, body, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Version: this.globalVendorArgs.apiVersion,
+                'Content-Type': 'application/json',
+            },
+        })
         return response.data
     }
 }
