@@ -87,8 +87,8 @@ export class EmailCoreVendor extends EventEmitter {
             this.emit('host', host)
             this.emit('ready')
 
-            // Start listening for new emails
-            await this.startIdleListener()
+            // Start listening for new emails (non-blocking)
+            this.startIdleListener()
         } catch (error) {
             console.error('[EmailProvider] Failed to connect to IMAP:', error)
             this.emit('auth_failure', error)
@@ -124,26 +124,33 @@ export class EmailCoreVendor extends EventEmitter {
 
     /**
      * Start IMAP IDLE listener for real-time email notifications
+     * This runs in the background and doesn't block the initialization
      */
-    private async startIdleListener(): Promise<void> {
+    private startIdleListener(): void {
         if (!this.imapClient || !this.isConnected) return
 
         const mailbox = this.config.mailbox || 'INBOX'
 
+        // Listen for new messages using EXISTS event
+        this.imapClient.on('exists', async (data: { path: string; count: number; prevCount: number }) => {
+            if (data.count > data.prevCount) {
+                console.log(`[EmailProvider] New email detected in ${data.path}`)
+                await this.fetchNewEmails(data.prevCount + 1, data.count)
+            }
+        })
+
+        // Start the IDLE loop in background
+        this.runIdleLoop(mailbox)
+    }
+
+    /**
+     * Run the IDLE loop in background without blocking
+     */
+    private async runIdleLoop(mailbox: string): Promise<void> {
         try {
-            // Select the mailbox
-            const lock = await this.imapClient.getMailboxLock(mailbox)
+            const lock = await this.imapClient!.getMailboxLock(mailbox)
 
             try {
-                // Listen for new messages using EXISTS event
-                this.imapClient.on('exists', async (data: { path: string; count: number; prevCount: number }) => {
-                    if (data.count > data.prevCount) {
-                        console.log(`[EmailProvider] New email detected in ${data.path}`)
-                        await this.fetchNewEmails(data.prevCount + 1, data.count)
-                    }
-                })
-
-                // Start IDLE mode
                 console.log(`[EmailProvider] Starting IDLE mode on ${mailbox}`)
 
                 // Keep the connection alive with IDLE
@@ -173,6 +180,7 @@ export class EmailCoreVendor extends EventEmitter {
         if (!this.imapClient || !this.isConnected) return
 
         const mailbox = this.config.mailbox || 'INBOX'
+        const processedEmails: { uid: number; context: EmailBotContext }[] = []
 
         try {
             const lock = await this.imapClient.getMailboxLock(mailbox)
@@ -187,19 +195,33 @@ export class EmailCoreVendor extends EventEmitter {
                         const emailContext = this.parseEmailToContext(parsed, message.uid)
 
                         if (emailContext) {
-                            // Mark as read if configured
-                            if (this.config.markAsRead !== false) {
-                                await this.imapClient.messageFlagsAdd({ uid: message.uid }, ['\\Seen'])
-                            }
-
-                            this.emit('message', emailContext)
+                            processedEmails.push({ uid: message.uid, context: emailContext })
                         }
                     } catch (parseError) {
                         console.error('[EmailProvider] Failed to parse email:', parseError)
                     }
                 }
+
+                // Mark emails as read after fetching (outside the fetch iterator)
+                if (this.config.markAsRead !== false && processedEmails.length > 0) {
+                    const uids = processedEmails.map((e) => e.uid)
+                    try {
+                        await this.imapClient.messageFlagsAdd(uids, ['\\Seen'])
+                    } catch (flagError) {
+                        console.error('[EmailProvider] Failed to mark emails as read:', flagError)
+                    }
+                }
             } finally {
                 lock.release()
+            }
+
+            // Emit events after releasing the lock to avoid blocking
+            for (const { context } of processedEmails) {
+                console.log('[EmailProvider] About to emit message event')
+                console.log('[EmailProvider] Listener count for "message":', this.listenerCount('message'))
+                console.log('[EmailProvider] Listeners:', this.listeners('message').length)
+                this.emit('message', context)
+                console.log('[EmailProvider] Message event emitted')
             }
         } catch (error) {
             console.error('[EmailProvider] Failed to fetch new emails:', error)
@@ -235,22 +257,37 @@ export class EmailCoreVendor extends EventEmitter {
                 : parsed.references
             : parsed.inReplyTo || parsed.messageId
 
-        // Build body - generate special events for attachments
-        let body = parsed.text || ''
-        if (attachments.length > 0 && !body.trim()) {
-            // Email with only attachments
-            const hasMedia = attachments.some(
-                (a) => a.contentType.startsWith('image/') || a.contentType.startsWith('video/')
-            )
-            const hasDocument = attachments.some(
-                (a) => a.contentType.startsWith('application/') || a.contentType.startsWith('text/')
-            )
-
-            if (hasMedia) {
-                body = utils.generateRefProvider('_event_media_')
-            } else if (hasDocument) {
-                body = utils.generateRefProvider('_event_document_')
+        // Determine attachment types for event routing
+        const hasMedia = attachments.some(
+            (a) => a.contentType.startsWith('image/') || a.contentType.startsWith('video/')
+        )
+        const hasAudio = attachments.some((a) => a.contentType.startsWith('audio/'))
+        const hasDocument = attachments.some((a) => {
+            // application/* are documents (pdf, msword, etc.)
+            if (a.contentType.startsWith('application/')) return true
+            // text/csv, text/calendar, etc. are documents, but NOT text/plain or text/html
+            if (
+                a.contentType.startsWith('text/') &&
+                !a.contentType.includes('plain') &&
+                !a.contentType.includes('html')
+            ) {
+                return true
             }
+            return false
+        })
+
+        // Build body - generate special events for attachments
+        // Priority: MEDIA > VOICE_NOTE > DOCUMENT > text
+        let body = parsed.text || ''
+        if (hasMedia) {
+            // Media attachments always trigger MEDIA event
+            body = utils.generateRefProvider('_event_media_')
+        } else if (hasAudio) {
+            // Audio attachments trigger VOICE_NOTE event
+            body = utils.generateRefProvider('_event_voice_note_')
+        } else if (hasDocument && !body.trim()) {
+            // Documents only trigger event if no text body
+            body = utils.generateRefProvider('_event_document_')
         }
 
         const context: EmailBotContext = {

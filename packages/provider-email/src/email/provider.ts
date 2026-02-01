@@ -15,6 +15,9 @@ import type { IEmailProviderArgs, EmailBotContext, EmailSendOptions } from '../t
 class EmailProvider extends ProviderClass<EmailCoreVendor> {
     globalVendorArgs: IEmailProviderArgs
 
+    // Map to store the last context of each conversation for thread replies
+    private conversationContexts: Map<string, EmailBotContext> = new Map()
+
     constructor(args: IEmailProviderArgs) {
         super()
 
@@ -46,12 +49,14 @@ class EmailProvider extends ProviderClass<EmailCoreVendor> {
      * Initialize the email vendor (IMAP/SMTP connections)
      */
     protected async initVendor(): Promise<EmailCoreVendor> {
+        console.log('[EmailProvider] initVendor() called')
         const vendor = new EmailCoreVendor(this.globalVendorArgs)
         this.vendor = vendor
 
         // Connect to IMAP server
         await vendor.connect()
 
+        console.log('[EmailProvider] initVendor() returning vendor')
         return vendor
     }
 
@@ -93,34 +98,45 @@ class EmailProvider extends ProviderClass<EmailCoreVendor> {
     /**
      * Map vendor events to provider events
      */
-    protected busEvents = () => [
-        {
-            event: 'auth_failure',
-            func: (payload: any) => this.emit('auth_failure', payload),
-        },
-        {
-            event: 'ready',
-            func: () => this.emit('ready', true),
-        },
-        {
-            event: 'message',
-            func: (payload: EmailBotContext) => {
-                this.emit('message', payload)
+    protected busEvents = () => {
+        console.log('[EmailProvider] busEvents() called - registering listeners')
+        return [
+            {
+                event: 'auth_failure',
+                func: (payload: any) => this.emit('auth_failure', payload),
             },
-        },
-        {
-            event: 'host',
-            func: (payload: any) => {
-                this.emit('host', payload)
+            {
+                event: 'ready',
+                func: () => {
+                    console.log('[EmailProvider] busEvents ready handler called')
+                    this.emit('ready', true)
+                },
             },
-        },
-        {
-            event: 'error',
-            func: (payload: any) => {
-                console.error('[EmailProvider] Error:', payload)
+            {
+                event: 'message',
+                func: (payload: EmailBotContext) => {
+                    console.log('[EmailProvider] busEvents message handler called!')
+                    console.log('[EmailProvider] Payload from:', payload.from, 'body:', payload.body?.substring(0, 50))
+                    // Store context to enable thread replies
+                    this.conversationContexts.set(payload.from, payload)
+                    this.emit('message', payload)
+                    console.log('[EmailProvider] Provider emitted message to bot')
+                },
             },
-        },
-    ]
+            {
+                event: 'host',
+                func: (payload: any) => {
+                    this.emit('host', payload)
+                },
+            },
+            {
+                event: 'error',
+                func: (payload: any) => {
+                    console.error('[EmailProvider] Error:', payload)
+                },
+            },
+        ]
+    }
 
     /**
      * Send an email message
@@ -129,14 +145,24 @@ class EmailProvider extends ProviderClass<EmailCoreVendor> {
      * @param options - Send options (subject, attachments, etc.)
      */
     async sendMessage(to: string, message: string, options?: SendOptions & EmailSendOptions): Promise<any> {
-        const emailOptions = options as EmailSendOptions | undefined
+        // Look up existing conversation context for thread replies
+        const conversationCtx = this.conversationContexts.get(to)
 
-        // Default subject if not provided
-        const subject = emailOptions?.subject || 'Message from Bot'
+        // Build email options with thread context if available
+        const baseSubject =
+            options?.subject || (conversationCtx?.subject ? conversationCtx.subject : 'Message from Bot')
+        const subject =
+            conversationCtx && !baseSubject.toLowerCase().startsWith('re:') ? `Re: ${baseSubject}` : baseSubject
 
-        // Check if we're replying to an existing thread
-        if (emailOptions?.inReplyTo) {
-            return this.vendor.sendEmail(to, subject, message, emailOptions)
+        const emailOptions: EmailSendOptions = {
+            ...options,
+            subject,
+            inReplyTo: options?.inReplyTo || conversationCtx?.messageId,
+            references:
+                options?.references ||
+                (conversationCtx
+                    ? ([conversationCtx.threadId || conversationCtx.messageId].filter(Boolean) as string[])
+                    : undefined),
         }
 
         // Check for media/attachments
