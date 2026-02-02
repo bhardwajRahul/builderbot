@@ -8,6 +8,10 @@ import { verifyWebhookSignature, extractSignatureFromHeaders } from '../utils/we
 
 import type { GHLGlobalVendorArgs, GHLIncomingWebhook, GHLMessage } from '~/types'
 
+/**
+ * Core vendor class handling OAuth callbacks and webhook processing
+ * @internal
+ */
 export class GoHighLevelCoreVendor extends EventEmitter {
     queue: Queue
     tokenManager: TokenManager
@@ -27,6 +31,7 @@ export class GoHighLevelCoreVendor extends EventEmitter {
     public oauthCallback: polka.Middleware = async (req: any, res: any) => {
         const { query } = req
         const code = query?.code as string
+        const globalVendorArgs = req['globalVendorArgs'] as GHLGlobalVendorArgs
 
         if (!code) {
             res.statusCode = 400
@@ -37,9 +42,36 @@ export class GoHighLevelCoreVendor extends EventEmitter {
         try {
             const tokens = await this.tokenManager.exchangeAuthorizationCode(code)
             this.emit('tokens_updated', tokens)
+
+            // Show tokens for user to copy to their config
+            this.emit('notice', {
+                title: '🔑 OAuth Tokens - Copy to your config:',
+                instructions: [
+                    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+                    `accessToken: '${tokens.access_token}',`,
+                    `refreshToken: '${tokens.refresh_token}',`,
+                    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+                ],
+            })
+
+            this.emit('notice', {
+                title: '✅ GHL Authorization Successful',
+                instructions: [
+                    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+                    `Location ID: ${tokens.locationId || globalVendorArgs?.locationId || 'N/A'}`,
+                    `Channel: ${globalVendorArgs?.channelType || 'N/A'}`,
+                    'Bot is ready to receive messages!',
+                    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+                ],
+            })
+            this.emit('ready')
             res.statusCode = 200
             res.end(JSON.stringify({ message: 'Authorization successful', locationId: tokens.locationId }))
         } catch (error) {
+            this.emit('notice', {
+                title: '❌ GHL Authorization Failed',
+                instructions: [error.message || 'Failed to exchange authorization code'],
+            })
             res.statusCode = 500
             res.end(JSON.stringify({ error: 'Failed to exchange authorization code' }))
         }

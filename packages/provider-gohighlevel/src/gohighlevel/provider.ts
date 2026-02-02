@@ -9,6 +9,7 @@ import { join, resolve } from 'path'
 import Queue from 'queue-promise'
 
 import { GoHighLevelCoreVendor } from './core'
+import { ChannelLister } from '../utils/channelLister'
 import { ContactResolver } from '../utils/contactResolver'
 import { downloadFile } from '../utils/downloadFile'
 import { parseGHLNumber } from '../utils/number'
@@ -19,11 +20,29 @@ import type { GHLGlobalVendorArgs, GHLMessage, GHLSendMessageBody, SaveFileOptio
 
 const GHL_API_URL = 'https://services.leadconnectorhq.com'
 
+/**
+ * GoHighLevel Provider for BuilderBot
+ * @description Integrates with GoHighLevel CRM to send/receive messages via SMS, WhatsApp, Email, etc.
+ * @see https://builderbot.app/en/providers/gohighlevel
+ * @example
+ * ```typescript
+ * const provider = createProvider(GoHighLevelProvider, {
+ *   clientId: 'YOUR_CLIENT_ID',
+ *   clientSecret: 'YOUR_CLIENT_SECRET',
+ *   locationId: 'YOUR_LOCATION_ID',
+ *   channelType: 'WhatsApp',
+ *   accessToken: 'OPTIONAL_TOKEN',
+ *   refreshToken: 'OPTIONAL_REFRESH_TOKEN',
+ * })
+ * ```
+ */
 class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements GoHighLevelInterface {
     public vendor: Vendor<any>
     public queue: Queue = new Queue()
     public tokenManager: TokenManager
     public contactResolver: ContactResolver
+    public channelLister: ChannelLister
+    private isReady: boolean = false
 
     public globalVendorArgs: GHLGlobalVendorArgs = {
         name: 'bot',
@@ -36,6 +55,11 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
         writeMyself: 'none',
     }
 
+    /**
+     * Creates a new GoHighLevel provider instance
+     * @param args - Configuration options for the provider
+     * @throws Error if clientId, clientSecret, or locationId are missing
+     */
     constructor(args: GHLGlobalVendorArgs) {
         super()
         this.globalVendorArgs = { ...this.globalVendorArgs, ...args }
@@ -58,9 +82,15 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
             this.globalVendorArgs.redirectUri
         )
         this.contactResolver = new ContactResolver(this.globalVendorArgs.apiVersion)
+        this.channelLister = new ChannelLister(this.globalVendorArgs.apiVersion)
 
         // Forward ContactResolver errors to provider notice events
         this.contactResolver.on('error', (payload) => {
+            this.emit('notice', payload)
+        })
+
+        // Forward ChannelLister errors to provider notice events
+        this.channelLister.on('error', (payload) => {
             this.emit('notice', payload)
         })
 
@@ -79,40 +109,148 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
 
     protected async afterHttpServerInit(): Promise<void> {
         try {
-            const token = await this.tokenManager.getValidToken()
-            if (!token) {
-                const authUrl = this.getAuthorizationUrl()
+            // If tokens are configured, validate them
+            if (this.globalVendorArgs.accessToken) {
                 this.emit('notice', {
-                    title: 'GHL AUTHORIZATION REQUIRED',
+                    title: '🔄 Validating existing token...',
+                    instructions: [],
+                })
+
+                const isValid = await this.tokenManager.validateToken()
+
+                if (isValid) {
+                    await this.emitReadyNotice()
+                    return
+                }
+
+                // Token invalid, try refresh if available
+                if (this.globalVendorArgs.refreshToken) {
+                    try {
+                        this.emit('notice', {
+                            title: '🔄 Token expired, refreshing...',
+                            instructions: [],
+                        })
+                        const newTokens = await this.tokenManager.refreshAccessToken()
+                        this.emitTokensNotice(newTokens)
+                        await this.emitReadyNotice()
+                        return
+                    } catch (refreshErr) {
+                        // Refresh failed, fall through to show OAuth URL
+                    }
+                }
+
+                // All failed, show error
+                this.emit('notice', {
+                    title: '❌ Tokens invalid',
                     instructions: [
-                        `Visit this URL to authorize: ${authUrl}`,
-                        'https://builderbot.app/en/providers/gohighlevel',
+                        'The tokens in your config are no longer valid.',
+                        'Please re-authorize using the URL below.',
                     ],
                 })
-                this.emit('require_action', {
-                    title: 'Authorization Required',
-                    instructions: ['GoHighLevel requires OAuth2 authorization.', `Visit: ${authUrl}`],
-                })
-                return
             }
 
-            const host = {
-                locationId: this.globalVendorArgs.locationId,
-                channelType: this.globalVendorArgs.channelType,
-            }
-            this.vendor.emit('host', host)
-            this.emit('ready')
-        } catch (err) {
+            // No tokens or validation failed - show OAuth URL
+            this.showAuthorizationUrl()
+        } catch (err: any) {
             this.emit('notice', {
-                title: 'GHL AUTH ERROR',
+                title: '❌ GHL Auth Error',
                 instructions: [err.message || 'Check credentials'],
             })
             this.emit('error', err)
         }
     }
 
+    private showAuthorizationUrl(): void {
+        const authUrl = this.getAuthorizationUrl()
+        this.emit('notice', {
+            title: '🔐 GHL Authorization Required',
+            instructions: [
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+                'Visit this URL to authorize your app:',
+                '',
+                authUrl,
+                '',
+                'Docs: https://builderbot.app/en/providers/gohighlevel',
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+            ],
+        })
+    }
+
+    private emitTokensNotice(tokens: { access_token: string; refresh_token: string }): void {
+        this.emit('notice', {
+            title: '🔑 New OAuth Tokens - Copy to your config:',
+            instructions: [
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+                `accessToken: '${tokens.access_token}',`,
+                `refreshToken: '${tokens.refresh_token}',`,
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+            ],
+        })
+    }
+
+    private async emitReadyNotice(): Promise<void> {
+        if (this.isReady) return
+
+        this.isReady = true
+        const host = {
+            locationId: this.globalVendorArgs.locationId,
+            channelType: this.globalVendorArgs.channelType,
+        }
+        this.vendor.emit('host', host)
+        this.emit('notice', {
+            title: '✅ GHL Connected',
+            instructions: [
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+                `Location ID: ${this.globalVendorArgs.locationId}`,
+                `Channel: ${this.globalVendorArgs.channelType}`,
+                'Bot is ready to receive messages!',
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+            ],
+        })
+
+        // List available channels based on channel type
+        await this.listAvailableChannels()
+
+        this.emit('ready')
+    }
+
+    private async listAvailableChannels(): Promise<void> {
+        try {
+            const token = await this.tokenManager.getValidToken()
+            if (!token) return
+
+            const channels = await this.channelLister.listByChannelType(
+                this.globalVendorArgs.channelType,
+                this.globalVendorArgs.locationId,
+                token
+            )
+
+            if (channels.length === 0) return
+
+            const channelType = this.globalVendorArgs.channelType
+            const isPhone = channelType === 'SMS' || channelType === 'WhatsApp'
+            const title = isPhone ? '📱 Available Phone Numbers:' : '📧 Available Email Accounts:'
+
+            const instructions = [
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+                ...channels.map((c) => (c.name ? `  ${c.name}: ${c.value}` : `  ${c.value}`)),
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+            ]
+
+            this.emit('notice', { title, instructions })
+        } catch (error) {
+            // Don't block bot startup if channel listing fails
+        }
+    }
+
     protected initVendor(): Promise<any> {
         const vendor = new GoHighLevelCoreVendor(this.queue, this.tokenManager, this.globalVendorArgs.webhookSecret)
+
+        // Register busEvents listeners on the vendor to forward events to provider
+        this.busEvents().forEach(({ event, func }) => {
+            vendor.on(event, func)
+        })
+
         this.server = this.server
             .use((req, _, next) => {
                 req['globalVendorArgs'] = this.globalVendorArgs
@@ -125,28 +263,41 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
         this.tokenManager.on('tokens_updated', (tokens) => {
             this.globalVendorArgs.accessToken = tokens.access_token
             this.globalVendorArgs.refreshToken = tokens.refresh_token
+
+            // If bot is already running, this is an automatic refresh - show new tokens
+            if (this.isReady) {
+                this.emitTokensNotice(tokens)
+            }
         })
 
         this.vendor = vendor
         return Promise.resolve(this.vendor)
     }
 
+    /** Stops the provider and cleans up resources */
     public async stop(): Promise<void> {
         this.tokenManager.destroy()
         this.contactResolver.clearCache()
         await super.stop()
     }
 
+    /** Returns the OAuth authorization URL for GoHighLevel */
     public getAuthorizationUrl(): string {
         const params = new URLSearchParams({
             response_type: 'code',
             client_id: this.globalVendorArgs.clientId,
             redirect_uri: this.globalVendorArgs.redirectUri || '',
-            scope: 'conversations.message.readonly conversations.message.write contacts.readonly contacts.write',
+            scope: 'conversations.message.readonly conversations.message.write contacts.readonly contacts.write locations.readonly',
         })
         return `https://marketplace.gohighlevel.com/oauth/chooselocation?${params.toString()}`
     }
 
+    /**
+     * Downloads and saves a file from an incoming message
+     * @param ctx - Message context containing file URL
+     * @param options - Save options (path)
+     * @returns Path to saved file or 'ERROR'
+     */
     saveFile = async (ctx: Partial<GHLMessage & BotContext>, options: SaveFileOptions = {}): Promise<string> => {
         try {
             const url = ctx?.url ?? ctx?.attachments?.[0]?.url
@@ -178,7 +329,12 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
         },
         {
             event: 'ready',
-            func: () => this.emit('ready', true),
+            func: () => {
+                if (!this.isReady) {
+                    this.isReady = true
+                    this.emit('ready', true)
+                }
+            },
         },
         {
             event: 'message',
@@ -201,11 +357,21 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
         },
     ]
 
+    /**
+     * Resolves a phone number to a GHL contact ID
+     * @param phone - Phone number to resolve
+     * @returns Contact ID or null if not found
+     */
     resolveContactId = async (phone: string): Promise<string | null> => {
         const token = await this.tokenManager.getValidToken()
         return this.contactResolver.resolveContactId(parseGHLNumber(phone), this.globalVendorArgs.locationId, token)
     }
 
+    /**
+     * Sends a text message to a contact
+     * @param to - Recipient phone number
+     * @param message - Text message content
+     */
     sendText = async (to: string, message: string): Promise<any> => {
         const contactId = await this.resolveContactId(to)
         if (!contactId) throw new Error(`Contact not found for phone: ${to}`)
@@ -223,6 +389,12 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
         return this.sendMessageGHL(body)
     }
 
+    /**
+     * Sends a media message (image, audio, video, document)
+     * @param to - Recipient phone number
+     * @param text - Optional caption text
+     * @param mediaInput - URL or path to media file
+     */
     sendMedia = async (to: string, text: string = '', mediaInput: string): Promise<any> => {
         const contactId = await this.resolveContactId(to)
         if (!contactId) throw new Error(`Contact not found for phone: ${to}`)
@@ -251,12 +423,24 @@ class GoHighLevelProvider extends ProviderClass<GoHighLevelInterface> implements
         return this.sendMessageGHL(body)
     }
 
+    /**
+     * Sends a message with buttons (rendered as numbered list)
+     * @param to - Recipient phone number
+     * @param buttons - Array of button objects
+     * @param text - Message text
+     */
     sendButtons = async (to: string, buttons: Button[] = [], text: string): Promise<any> => {
         const buttonText = buttons.map((btn, i) => `${i + 1}. ${btn.body}`).join('\n')
         const fullMessage = `${text}\n\n${buttonText}`
         return this.sendText(to, fullMessage)
     }
 
+    /**
+     * Sends a message with optional media or buttons
+     * @param to - Recipient phone number
+     * @param message - Message text
+     * @param options - Optional send options (media, buttons)
+     */
     sendMessage = async (to: string, message: string, options?: SendOptions): Promise<any> => {
         to = parseGHLNumber(to)
         options = { ...options, ...options?.['options'] }

@@ -4,7 +4,14 @@ import EventEmitter from 'node:events'
 import type { GHLOAuthTokens } from '~/types'
 
 const GHL_AUTH_URL = 'https://services.leadconnectorhq.com/oauth/token'
+const GHL_API_URL = 'https://services.leadconnectorhq.com'
 
+/**
+ * Manages OAuth2 tokens for GoHighLevel API
+ * Handles token exchange, refresh, validation, and automatic renewal
+ * @emits tokens_updated - When tokens are refreshed
+ * @emits token_error - When token operations fail
+ */
 export class TokenManager extends EventEmitter {
     private accessToken: string = ''
     private refreshToken: string = ''
@@ -43,6 +50,7 @@ export class TokenManager extends EventEmitter {
         }
     }
 
+    /** Exchanges an authorization code for access and refresh tokens */
     async exchangeAuthorizationCode(code: string): Promise<GHLOAuthTokens> {
         const response = await axios.post(
             GHL_AUTH_URL,
@@ -110,6 +118,31 @@ export class TokenManager extends EventEmitter {
             await this.refreshAccessToken()
         }
         return this.accessToken
+    }
+
+    /**
+     * Validates the current access token by making an API call to GHL.
+     * Returns true if token is valid, false if invalid/expired.
+     */
+    async validateToken(): Promise<boolean> {
+        if (!this.accessToken) return false
+
+        try {
+            const response = await axios.get(`${GHL_API_URL}/users/me`, {
+                headers: {
+                    Authorization: `Bearer ${this.accessToken}`,
+                    Version: '2021-07-28',
+                },
+            })
+            return response.status === 200
+        } catch (error: any) {
+            if (error.response?.status === 401) {
+                return false
+            }
+            // Network or other errors - emit but don't throw
+            this.emit('token_error', error)
+            return false
+        }
     }
 
     private scheduleRefresh(expiresIn: number): void {
