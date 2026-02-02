@@ -262,7 +262,7 @@ describe('InstagramProvider', () => {
         })
 
         it('should process incoming webhook correctly', () => {
-            (provider as any).ctrlInMsg(mockReq, mockRes)
+            ;(provider as any).ctrlInMsg(mockReq, mockRes)
 
             expect(provider.vendor.eventInMsg).toHaveBeenCalledWith(mockReq.body)
             expect(mockRes.end).toHaveBeenCalledWith('EVENT_RECEIVED')
@@ -373,13 +373,11 @@ describe('InstagramProvider', () => {
                 message: 'Network error',
             })
 
-            await expect(provider.replyComment('comment_456', 'Reply')).rejects.toThrow(
-                'Failed to reply to comment'
-            )
+            await expect(provider.replyComment('comment_456', 'Reply')).rejects.toThrow('Failed to reply to comment')
         })
     })
 
-    describe('sendCommentDM', () => {
+    describe('sendPrivateReply', () => {
         let provider: InstagramProvider
 
         beforeEach(() => {
@@ -393,7 +391,7 @@ describe('InstagramProvider', () => {
                 data: { message_id: 'msg_789' },
             })
 
-            const result = await provider.sendCommentDM('comment_456', 'Hey, saw your comment!')
+            const result = await provider.sendPrivateReply('comment_456', 'Hey, saw your comment!')
 
             expect(axios.post).toHaveBeenCalledWith(
                 `https://graph.instagram.com/${mockConfig.version}/me/messages`,
@@ -413,7 +411,7 @@ describe('InstagramProvider', () => {
                 message: 'Network error',
             })
 
-            await expect(provider.sendCommentDM('comment_456', 'Hey!')).rejects.toThrow(
+            await expect(provider.sendPrivateReply('comment_456', 'Hey!')).rejects.toThrow(
                 'Failed to send private reply'
             )
         })

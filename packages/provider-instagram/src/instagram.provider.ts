@@ -359,7 +359,7 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
      * @param commentId - The ID of the comment to privately reply to
      * @param message - The message text to send via DM
      */
-    sendCommentDM = async (commentId: string, message: string): Promise<any> => {
+    sendPrivateReply = async (commentId: string, message: string): Promise<any> => {
         const url = `${INSTAGRAM_API_URL}${this.globalVendorArgs.version}/me/messages`
         try {
             const body = {

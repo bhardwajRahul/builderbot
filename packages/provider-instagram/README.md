@@ -71,6 +71,7 @@ main()
 | `version` | string | No | `v19.0` | Facebook Graph API version |
 | `port` | number | No | `3000` | Port for the webhook server |
 | `name` | string | No | `instagram-bot` | Name identifier for the bot |
+| `listenMode` | string | No | `message` | Listen mode: `message`, `comment`, or `both` |
 
 ## Webhook Setup
 
@@ -80,6 +81,7 @@ main()
 4. Subscribe to the following events:
    - `messages`
    - `messaging_postbacks`
+   - `comments` (required for listening to post comments)
 
 ## Available Methods
 
@@ -111,6 +113,61 @@ await provider.sendQuickReplies('user_id', 'Quick options:', [
 ### saveFile(ctx, options?)
 Save a file from a received message.
 
+### replyComment(commentId, message)
+Reply publicly to a comment (visible on the post).
+
+```typescript
+await provider.replyComment(ctx.comment.id, 'Thanks for your comment!')
+```
+
+### sendPrivateReply(commentId, message)
+Send a private DM to a user who commented on your post.
+
+```typescript
+await provider.sendPrivateReply(ctx.comment.id, 'Thanks for your interest!')
+```
+
+## Listening to Comments
+
+To listen to comments on your posts, set `listenMode` to `comment` or `both`:
+
+```typescript
+const provider = createProvider(InstagramProvider, {
+    accessToken: 'YOUR_ACCESS_TOKEN',
+    igAccountId: 'YOUR_INSTAGRAM_ACCOUNT_ID',
+    verifyToken: 'YOUR_VERIFY_TOKEN',
+    listenMode: 'both', // Listen to DMs and comments
+})
+
+// Flow that responds to "info" from both DMs and comments
+const infoFlow = addKeyword('info')
+    .addAction(async (ctx, { provider }) => {
+        if (ctx.comment) {
+            // It's a comment - send private DM based on comment
+            await provider.sendPrivateReply(ctx.comment.id, 'Thanks for your interest!')
+        } else {
+            // It's a DM - reply to the DM directly
+            await provider.sendMessage(ctx.from, 'Thanks for your interest!')
+        }
+    })
+```
+
+When a comment is received, `ctx` includes:
+
+```typescript
+{
+    body: 'comment text',
+    from: 'user_id',
+    name: 'username',
+    comment: {
+        id: '123456',        // Comment ID
+        parentId: null,      // Parent comment ID (if reply)
+        mediaId: '789012',   // Post/media ID
+        username: 'user123'  // Username of commenter
+    }
+}
+```
+
 ## Supported Events
 
 The provider handles the following incoming events:
@@ -121,6 +178,7 @@ The provider handles the following incoming events:
 - **Audio attachments**: Audio files and voice notes
 - **File attachments**: Documents and other files
 - **Postback events**: Button click responses
+- **Comments**: Comments on your posts (when `listenMode` is `comment` or `both`)
 
 ## Documentation
 
