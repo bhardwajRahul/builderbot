@@ -66,7 +66,7 @@ class SherpaProvider extends ProviderClass<WASocket> {
     private maxReconnectAttempts = 50
     private reconnectDelay = 1000 // 1 segundo inicial
     private healthCheckInterval?: ReturnType<typeof setInterval>
-    private presenceInterval?: ReturnType<typeof setInterval>
+    private presenceInterval?: ReturnType<typeof setTimeout>
     private badSessionCount = 0
 
     msgRetryCounterCache?: NodeCache
@@ -1162,17 +1162,28 @@ class SherpaProvider extends ProviderClass<WASocket> {
             }
         }, 30_000) // Check every 30 seconds
 
-        // Presence update every 5 minutes as application-level heartbeat
-        this.presenceInterval = setInterval(async () => {
-            try {
-                const sock = this.vendor
-                if (!sock) return
-                await sock.sendPresenceUpdate('available')
-                this.logger.log(`[${new Date().toISOString()}] Presence heartbeat sent`)
-            } catch (error) {
-                this.logger.log(`[${new Date().toISOString()}] Presence heartbeat error:`, error)
-            }
-        }, 300_000) // Every 5 minutes
+        // Presence update with random interval (3-8 min) to mimic human behavior
+        const schedulePresenceHeartbeat = () => {
+            const minDelay = 180_000 // 3 minutes
+            const maxDelay = 480_000 // 8 minutes
+            const randomDelay = minDelay + Math.floor(Math.random() * (maxDelay - minDelay))
+
+            this.presenceInterval = setTimeout(async () => {
+                try {
+                    const sock = this.vendor
+                    if (!sock) return
+                    await sock.sendPresenceUpdate('available')
+                    this.logger.log(
+                        `[${new Date().toISOString()}] Presence heartbeat sent (next in ~${Math.round(randomDelay / 60_000)}min)`
+                    )
+                } catch (error) {
+                    this.logger.log(`[${new Date().toISOString()}] Presence heartbeat error:`, error)
+                }
+                // Schedule the next one with a new random delay
+                schedulePresenceHeartbeat()
+            }, randomDelay)
+        }
+        schedulePresenceHeartbeat()
     }
 
     private stopHealthCheck() {
@@ -1181,7 +1192,7 @@ class SherpaProvider extends ProviderClass<WASocket> {
             this.healthCheckInterval = undefined
         }
         if (this.presenceInterval) {
-            clearInterval(this.presenceInterval)
+            clearTimeout(this.presenceInterval)
             this.presenceInterval = undefined
         }
     }
