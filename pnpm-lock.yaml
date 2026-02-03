@@ -1009,6 +1009,9 @@ importers:
             axios:
                 specifier: ^1.13.2
                 version: 1.13.2
+            form-data:
+                specifier: ^4.0.5
+                version: 4.0.5
             mime-types:
                 specifier: ^3.0.2
                 version: 3.0.2
@@ -1031,6 +1034,9 @@ importers:
             '@rollup/plugin-node-resolve':
                 specifier: ^16.0.3
                 version: 16.0.3(rollup@4.53.3)
+            '@types/form-data':
+                specifier: ^2.5.2
+                version: 2.5.2
             '@types/jest':
                 specifier: ^30.0.0
                 version: 30.0.0
@@ -5444,6 +5450,13 @@ packages:
             {
                 integrity: sha512-GWXfsD0Jc1RWiFmMuMFCpXMzi9L7oPDVwxUnZdg89kDNnqsRfUKXEtUYtA98A6lig1WXH/CYY/fvPW9HuN5fTA==,
             }
+
+    '@types/form-data@2.5.2':
+        resolution:
+            {
+                integrity: sha512-tfmcyHn1Pp9YHAO5r40+UuZUPAZbUEgqTel3EuEKpmF9hPkXgR4l41853raliXnb4gwyPNoQOfvgGGlHN5WSog==,
+            }
+        deprecated: This is a stub types definition. form-data provides its own type definitions, so you do not need this installed.
 
     '@types/fs-extra@11.0.4':
         resolution:
@@ -20710,6 +20723,10 @@ snapshots:
     '@types/follow-redirects@1.14.4':
         dependencies:
             '@types/node': 24.10.2
+
+    '@types/form-data@2.5.2':
+        dependencies:
+            form-data: 4.0.5
 
     '@types/fs-extra@11.0.4':
         dependencies:
