@@ -66,6 +66,8 @@ class SherpaProvider extends ProviderClass<WASocket> {
     private maxReconnectAttempts = 50
     private reconnectDelay = 1000 // 1 segundo inicial
     private healthCheckInterval?: ReturnType<typeof setInterval>
+    private presenceInterval?: ReturnType<typeof setInterval>
+    private badSessionCount = 0
 
     msgRetryCounterCache?: NodeCache
     userDevicesCache?: NodeCache
@@ -273,9 +275,11 @@ class SherpaProvider extends ProviderClass<WASocket> {
         }
 
         try {
+            const waVersion = this.globalVendorArgs.version ?? [2, 3000, 1023223821]
+
             const sock = makeWASocketOther({
                 logger: loggerSherpa,
-                version: [2, 3000, 1023223821] as WAVersion,
+                version: waVersion as WAVersion,
                 printQRInTerminal: false,
                 auth: {
                     creds: state.creds,
@@ -288,12 +292,23 @@ class SherpaProvider extends ProviderClass<WASocket> {
                 getMessage: this.getMessage,
                 msgRetryCounterMap: {},
                 userDevicesCache: this.userDevicesCache as any,
-                retryRequestDelayMs: 1000, // Mayor delay entre reintentos
+                retryRequestDelayMs: 2000, // Delay entre reintentos (2s para evitar rate-limit)
                 connectTimeoutMs: 60_000, // 1 minuto timeout conexión
-                keepAliveIntervalMs: 10_000, // Keep alive cada 10 segundos
+                keepAliveIntervalMs: 15_000, // Keep alive cada 15 segundos (recomendado por comunidad)
                 qrTimeout: 40_000, // 40 segundos para QR
                 defaultQueryTimeoutMs: 60_000, // 1 minuto para queries
                 emitOwnEvents: false, // No emitir eventos propios
+                patchMessageBeforeSending: async (msg) => {
+                    // Upload pre-keys proactively to prevent decryption failures
+                    try {
+                        if (sock?.uploadPreKeysToServerIfRequired) {
+                            await sock.uploadPreKeysToServerIfRequired()
+                        }
+                    } catch (e) {
+                        this.logger.log(`[${new Date().toISOString()}] Pre-key upload error:`, e)
+                    }
+                    return msg
+                },
                 shouldIgnoreJid: (jid: string) => {
                     if (this.globalVendorArgs.groupsIgnore) {
                         return isJidGroup(jid) || isJidBroadcast(jid)
@@ -376,6 +391,22 @@ class SherpaProvider extends ProviderClass<WASocket> {
                         return
                     }
 
+                    // badSession: try reconnecting first, but if it repeats too many times, clear session
+                    if (statusCode === DisconnectReason.badSession) {
+                        this.badSessionCount++
+                        if (this.badSessionCount >= 3) {
+                            this.logger.log(
+                                `[${new Date().toISOString()}] Bad session repeated ${this.badSessionCount} times, clearing session...`
+                            )
+                            const PATH_BASE = join(process.cwd(), `${this.globalVendorArgs.name}_sessions`)
+                            await emptyDirSessions(PATH_BASE)
+                            this.badSessionCount = 0
+                            this.reconnectAttempts = 0
+                        }
+                        await this.delayedReconnect()
+                        return
+                    }
+
                     // Casos donde debemos reconectar con backoff
                     if (this.shouldReconnect(statusCode)) {
                         await this.delayedReconnect()
@@ -406,6 +437,7 @@ class SherpaProvider extends ProviderClass<WASocket> {
                     this.logger.log(`[${new Date().toISOString()}] Connection opened successfully`)
                     this.reconnectAttempts = 0 // Reset counter on successful connection
                     this.reconnectDelay = 1000 // Reset delay
+                    this.badSessionCount = 0 // Reset bad session counter
                     this.startHealthCheck()
 
                     const parseNumber = `${sock?.user?.id}`.split(':').shift()
@@ -1104,9 +1136,13 @@ class SherpaProvider extends ProviderClass<WASocket> {
     /**
      * Starts a periodic health check that verifies the WebSocket connection is alive.
      * If the connection is detected as dead (zombie), it triggers a reconnect.
+     * Also sends periodic presence updates as an application-level heartbeat
+     * to prevent WhatsApp from considering the connection inactive.
      */
     private startHealthCheck() {
         this.stopHealthCheck()
+
+        // WebSocket state check every 30 seconds
         this.healthCheckInterval = setInterval(() => {
             try {
                 const sock = this.vendor
@@ -1125,12 +1161,28 @@ class SherpaProvider extends ProviderClass<WASocket> {
                 this.logger.log(`[${new Date().toISOString()}] Health check error:`, error)
             }
         }, 30_000) // Check every 30 seconds
+
+        // Presence update every 5 minutes as application-level heartbeat
+        this.presenceInterval = setInterval(async () => {
+            try {
+                const sock = this.vendor
+                if (!sock) return
+                await sock.sendPresenceUpdate('available')
+                this.logger.log(`[${new Date().toISOString()}] Presence heartbeat sent`)
+            } catch (error) {
+                this.logger.log(`[${new Date().toISOString()}] Presence heartbeat error:`, error)
+            }
+        }, 300_000) // Every 5 minutes
     }
 
     private stopHealthCheck() {
         if (this.healthCheckInterval) {
             clearInterval(this.healthCheckInterval)
             this.healthCheckInterval = undefined
+        }
+        if (this.presenceInterval) {
+            clearInterval(this.presenceInterval)
+            this.presenceInterval = undefined
         }
     }
 
