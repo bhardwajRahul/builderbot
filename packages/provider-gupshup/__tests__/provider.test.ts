@@ -603,25 +603,49 @@ describe('#GupshupProvider', () => {
             )
         })
 
-        test('should send location request payload', async () => {
-            const mockPost = mockHttpPost()
+        test('should send location request payload through partner passthrough endpoint', async () => {
+            const providerWithPartner = new GupshupProvider({
+                ...mockArgs,
+                partner: {
+                    appId: 'partner-app-id',
+                    appToken: 'partner-app-token',
+                },
+            })
+            mockedAxios.post.mockResolvedValue({ data: { messageId: 'location-pass-1' } } as any)
+            const sessionPost = jest.fn()
+            ;(providerWithPartner as any).http = { post: sessionPost }
 
-            await provider.sendLocationRequest('5491155551234', 'Please share your current location')
+            await providerWithPartner.sendLocationRequest('5491155551234', 'Please share your current location')
 
-            const calledParams = mockPost.mock.calls[0][1] as URLSearchParams
-            const messagePayload = JSON.parse(calledParams.get('message') || '{}')
-
-            expect(messagePayload).toEqual({
-                type: 'interactive',
-                interactive: {
-                    type: 'location_request_message',
-                    body: {
-                        type: 'text',
-                        text: 'Please share your current location',
+            expect(mockedAxios.post).toHaveBeenCalledWith(
+                'https://partner.gupshup.io/partner/app/partner-app-id/v3/message',
+                expect.any(URLSearchParams),
+                {
+                    headers: {
+                        Authorization: 'partner-app-token',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    action: {
-                        name: 'send_location',
-                    },
+                }
+            )
+            expect(sessionPost).not.toHaveBeenCalled()
+
+            const calledParams = mockedAxios.post.mock.calls[
+                mockedAxios.post.mock.calls.length - 1
+            ][1] as URLSearchParams
+            expect(calledParams.get('messaging_product')).toBe('whatsapp')
+            expect(calledParams.get('recipient_type')).toBe('individual')
+            expect(calledParams.get('to')).toBe('5491155551234')
+            expect(calledParams.get('type')).toBe('interactive')
+            expect(calledParams.get('payload')).toBeNull()
+
+            const interactivePayload = JSON.parse(calledParams.get('interactive') || '{}')
+            expect(interactivePayload).toEqual({
+                type: 'location_request_message',
+                body: {
+                    text: 'Please share your current location',
+                },
+                action: {
+                    name: 'send_location',
                 },
             })
         })
@@ -629,6 +653,12 @@ describe('#GupshupProvider', () => {
         test('should fail when location request text is empty', async () => {
             await expect(provider.sendLocationRequest('5491155551234', '   ')).rejects.toThrow(
                 'Location request body text is required'
+            )
+        })
+
+        test('should fail when partner config is missing for location request passthrough', async () => {
+            await expect(provider.sendLocationRequest('5491155551234', 'Please share your location')).rejects.toThrow(
+                'Partner app config is required. Provide partner.appId and partner.appToken.'
             )
         })
 
@@ -836,9 +866,7 @@ describe('#GupshupProvider', () => {
                         ],
                     },
                 ])
-            ).rejects.toThrow(
-                'Partner app config is required for flow templates. Provide partner.appId and partner.appToken.'
-            )
+            ).rejects.toThrow('Partner app config is required. Provide partner.appId and partner.appToken.')
         })
 
         test('should keep legacy non-flow template route on /template/msg', async () => {

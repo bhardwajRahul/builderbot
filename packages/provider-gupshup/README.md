@@ -50,3 +50,11 @@ const { httpServer } = await createBot(
     }
 )
 ```
+
+## Location Request Transport
+
+`sendLocationRequest`, `requestLocation`, and `sendMessage(..., { locationRequest })` send messages through the partner passthrough endpoint (`/partner/app/{appId}/v3/message`).
+
+- `partner.appId` and `partner.appToken` are required.
+- `bodyText` must be non-empty.
+- Missing partner config throws: `Partner app config is required. Provide partner.appId and partner.appToken.`

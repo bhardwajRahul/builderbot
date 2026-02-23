@@ -29,6 +29,7 @@ import { extractFileNameFromInput, inferSessionMediaTypeFromInput, isHttpUrl } f
 const SESSION_BASE_URL = 'https://api.gupshup.io/wa/api/v1'
 const APP_BASE_URL = 'https://api.gupshup.io/wa/app'
 const PARTNER_BASE_URL = 'https://partner.gupshup.io'
+const PARTNER_APP_CONFIG_REQUIRED_ERROR = 'Partner app config is required. Provide partner.appId and partner.appToken.'
 const GUPSHUP_CHANNEL = 'whatsapp'
 const MAX_QUICK_REPLY_OPTIONS = 3
 const LOCAL_MEDIA_ROUTE_BASE = '/local-media'
@@ -824,11 +825,13 @@ export class GupshupProvider extends ProviderClass<GupshupCoreVendor> {
         }
 
         const payload = {
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to,
             type: 'interactive',
             interactive: {
                 type: 'location_request_message',
                 body: {
-                    type: 'text',
                     text: parsedBodyText.trim(),
                 },
                 action: {
@@ -837,7 +840,7 @@ export class GupshupProvider extends ProviderClass<GupshupCoreVendor> {
             },
         }
 
-        return this.postSessionMessage(to, payload, 'location_request')
+        return this.postPartnerPassthroughMessage(to, payload, 'location_request')
     }
 
     public requestLocation = async (to: string, bodyText: string): Promise<any> => {
@@ -1022,9 +1025,7 @@ export class GupshupProvider extends ProviderClass<GupshupCoreVendor> {
         const partnerConfig = this.getPartnerConfig()
 
         if (!partnerConfig) {
-            throw new Error(
-                'Partner app config is required for flow/passthrough messages. Provide partner.appId and partner.appToken.'
-            )
+            throw new Error(PARTNER_APP_CONFIG_REQUIRED_ERROR)
         }
 
         const body = new URLSearchParams()
@@ -1172,9 +1173,7 @@ export class GupshupProvider extends ProviderClass<GupshupCoreVendor> {
             if (hasFlowTemplateActionComponent) {
                 const partnerConfig = this.getPartnerConfig()
                 if (!partnerConfig) {
-                    throw new Error(
-                        'Partner app config is required for flow templates. Provide partner.appId and partner.appToken.'
-                    )
+                    throw new Error(PARTNER_APP_CONFIG_REQUIRED_ERROR)
                 }
 
                 const language =
