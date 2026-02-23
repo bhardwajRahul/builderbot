@@ -41,8 +41,8 @@ const CLOUD_ENV_HINTS = [
     'WEBSITE_SITE_NAME',
     'RENDER',
     'RAILWAY_ENVIRONMENT',
-    'VERCEL',
     'DYNO',
+    'VERCEL',
 ]
 
 type LocalMediaRegistration = {
