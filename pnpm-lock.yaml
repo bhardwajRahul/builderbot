@@ -1407,9 +1407,6 @@ importers:
             rollup-plugin-typescript2:
                 specifier: ^0.36.0
                 version: 0.36.0(rollup@4.53.3)(typescript@5.9.3)
-            sino:
-                specifier: ^0.0.3
-                version: 0.0.3
             sinon:
                 specifier: ^17.0.1
                 version: 17.0.2
@@ -7843,12 +7840,6 @@ packages:
                 integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==,
             }
         engines: { node: '>= 8' }
-
-    crypt3@0.2.0:
-        resolution:
-            {
-                integrity: sha512-riA574RPPPCDBb6+9ESQObLwFyLnrggsMPmG1SVoMx4BkHe8gttoBQXIvCAAPtH/UTRQ++n+jxJ+2h7pNb1Kyg==,
-            }
 
     crypto-random-string@4.0.0:
         resolution:
@@ -15343,14 +15334,6 @@ packages:
             }
         engines: { node: '>=20.12.2' }
 
-    sino@0.0.3:
-        resolution:
-            {
-                integrity: sha512-KxYjMjG978zCXYy52g6rdsIC6W4kTy7ZBsJbZallrWQWaTSAFE8THEVQ+JYGFKwcxDB24tkFBYFlV+iThXn0Mg==,
-            }
-        engines: { node: '>=4' }
-        hasBin: true
-
     sinon@17.0.1:
         resolution:
             {
@@ -15363,12 +15346,6 @@ packages:
                 integrity: sha512-uihLiaB9FhzesElPDFZA7hDcNABzsVHwr3YfmM9sBllVwab3l0ltGlRV1XhpNfIacNDLGD1QRZNLs5nU5+hTuA==,
             }
         deprecated: There
-
-    sinopia-htpasswd@0.4.5:
-        resolution:
-            {
-                integrity: sha512-UKFJ4foiRCRNT3Fz/fHI7cTc2B/we2rqKPi6GUg5Go9xMqtq/k8ntXzbEvPAK8b5WK761pYDV1EF/VXTewwVQA==,
-            }
 
     sisteransi@1.0.5:
         resolution:
@@ -22286,11 +22263,6 @@ snapshots:
             shebang-command: 2.0.0
             which: 2.0.2
 
-    crypt3@0.2.0:
-        dependencies:
-            nan: 2.23.1
-        optional: true
-
     crypto-random-string@4.0.0:
         dependencies:
             type-fest: 1.4.0
@@ -27672,33 +27644,6 @@ snapshots:
 
     simple-xml-to-json@1.2.3: {}
 
-    sino@0.0.3:
-        dependencies:
-            JSONStream: 1.3.5
-            async: 2.6.4
-            body-parser: 1.20.4
-            bunyan: 1.8.15
-            commander: 2.20.3
-            compression: 1.8.1
-            cookies: 0.7.3
-            es6-shim: 0.35.8
-            express: 4.21.2
-            handlebars: 4.7.8
-            highlight.js: 9.18.5
-            http-errors: 1.8.1
-            jju: 1.4.0
-            js-yaml: 3.14.2
-            lunr: 1.0.0
-            minimatch: 3.1.2
-            mkdirp: 0.5.6
-            readable-stream: 2.3.8
-            render-readme: 1.3.1
-            request: 2.88.2
-            semver: 5.7.2
-            sinopia-htpasswd: 0.4.5
-        transitivePeerDependencies:
-            - supports-color
-
     sinon@17.0.1:
         dependencies:
             '@sinonjs/commons': 3.0.1
@@ -27716,11 +27661,6 @@ snapshots:
             diff: 5.2.0
             nise: 5.1.9
             supports-color: 7.2.0
-
-    sinopia-htpasswd@0.4.5:
-        optionalDependencies:
-            crypt3: 0.2.0
-            fs-ext: 2.1.1
 
     sisteransi@1.0.5: {}
 
