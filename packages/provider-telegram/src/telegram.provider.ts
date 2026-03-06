@@ -51,6 +51,10 @@ class TelegramProvider extends ProviderClass<TelegramEvents> {
         const stringSession = this._getStringSession()
         this.client = new TelegramClient(stringSession, +args.apiId, args.apiHash, {
             connectionRetries: 5,
+            useWSS: true,
+            deviceModel: 'BuilderBot Server',
+            systemVersion: 'Node.js',
+            appVersion: '1.0.0',
         })
     }
 
@@ -68,10 +72,10 @@ class TelegramProvider extends ProviderClass<TelegramEvents> {
         // if (userId != "1975336063") return;
         if (args?.buttons?.length) return await this.sendButtons(userId, message, args?.buttons)
         if (args?.mediaURL) return await this.sendMedia(userId, args?.mediaURL, message)
-        await this.client.sendMessage(userId, {
+        return (await this.client.sendMessage(userId, {
             message,
             // schedule: args?.schedule,
-        })
+        })) as unknown as K
     }
 
     async getUnreadMessages(args?: IterDialogsParams) {
@@ -84,6 +88,7 @@ class TelegramProvider extends ProviderClass<TelegramEvents> {
                 const messages = await this.client.getMessages(dialog.inputEntity, {
                     limit: dialog.unreadCount,
                 })
+                if (!messages.length) continue
                 if (messages[0].senderId.toString() == mySenderId) continue
 
                 const filteredMessages = messages.filter((msg) => msg.senderId.toString() !== mySenderId).reverse()
@@ -125,8 +130,12 @@ class TelegramProvider extends ProviderClass<TelegramEvents> {
         const res = await fetch(mediaURL, { method: 'GET' })
         const buffer = await res.arrayBuffer()
         const mimeType = res.headers.get('content-type')
+        if (!mimeType) {
+            throw new Error(`[sendMedia] Unable to determine content-type for URL: ${mediaURL}`)
+        }
 
         const tmpDir = join(process.cwd(), 'tmp', 'media')
+        fs.mkdirSync(tmpDir, { recursive: true })
         const fileExtension = mimeType.split('/')[1]
         const fileName: string = `${Date.now().toString()}-${chatId}.${fileExtension}`
         let filePath = path.join(tmpDir, fileName)
@@ -137,22 +146,19 @@ class TelegramProvider extends ProviderClass<TelegramEvents> {
         let videoNote = false
         if (caption == 'video_note' && fileExtension == 'mp4') {
             videoNote = true
-            const oldFilePath = filePath
-            filePath = path.join(tmpDir, `new_${fileName}`)
-            // await execSync(
-            //     `ffmpeg -i ${oldFilePath} -filter:v "crop=384:384" ${filePath}`
-            // );
-            // if (stderr) console.error(stderr);
-            fs.unlinkSync(oldFilePath)
+            // Note: ffmpeg crop transformation not available; send original file as-is
         }
-        await this.client.sendFile(chatId, {
-            file: filePath,
-            voiceNote,
-            caption,
-            videoNote,
-        })
 
-        fs.unlinkSync(filePath)
+        try {
+            await this.client.sendFile(chatId, {
+                file: filePath,
+                voiceNote,
+                caption,
+                videoNote,
+            })
+        } finally {
+            fs.unlinkSync(filePath)
+        }
         return
     }
 
@@ -179,16 +185,10 @@ class TelegramProvider extends ProviderClass<TelegramEvents> {
         const vendor = new TelegramEvents()
         this.vendor = vendor
 
-        console.log(`[phoneNumber] ${this.globalVendorArgs.apiNumber}`)
-        console.log(`[phoneCode] ${this.globalVendorArgs.apiPassword}`)
-        console.log(`[password] ${this.globalVendorArgs.apiPassword}`)
-
         await this.client.start({
             phoneNumber: async () => this.globalVendorArgs.apiNumber,
             phoneCode: async () => {
-                const code = await this.globalVendorArgs.getCode()
-                await utils.delay(10000)
-                return new Promise((resolve) => resolve(code))
+                return await this.globalVendorArgs.getCode()
             },
             password: async () => this.globalVendorArgs.apiPassword || '',
             onError: (err) => console.log(err),
@@ -225,6 +225,7 @@ class TelegramProvider extends ProviderClass<TelegramEvents> {
             return filePath
         } catch (error) {
             console.error('[saveFile()]', error)
+            return ''
         }
     }
 }

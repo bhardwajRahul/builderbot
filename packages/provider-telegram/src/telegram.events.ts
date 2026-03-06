@@ -13,7 +13,6 @@ export class TelegramEvents extends EventEmitterClass<ProviderEventTypes> {
         const mimeType = hasFile ? payload.message.file.mimeType : null
 
         const sendObj = {
-            ...payload,
             body: payload.message.message,
             caption: payload.message.message,
             from: payload.chatId.toString(),
@@ -22,6 +21,11 @@ export class TelegramEvents extends EventEmitterClass<ProviderEventTypes> {
             hasFile,
             isVoice,
             mimeType,
+            message: {
+                voice: !!payload.message.voice,
+                media: !!payload.message.media,
+                message: payload.message.message,
+            },
         }
 
         // if (payload.chatId.toString() == "1975336063")

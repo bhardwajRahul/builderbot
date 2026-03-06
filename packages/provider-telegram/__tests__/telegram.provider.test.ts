@@ -283,7 +283,7 @@ describe('#TelegramProvider', () => {
 
             const result = await provider.saveFile(ctx as any, { path: '/tmp' })
 
-            expect(result).toBeUndefined()
+            expect(result).toBe('')
         })
     })
 
@@ -408,6 +408,99 @@ describe('#TelegramProvider', () => {
     describe('#afterHttpServerInit', () => {
         test('should be a no-op', () => {
             expect(() => provider['afterHttpServerInit']()).not.toThrow()
+        })
+    })
+
+    // ===== sendMedia error handling =====
+
+    describe('#sendMedia — mimeType guard', () => {
+        test('should throw when content-type header is missing', async () => {
+            global.fetch = jest.fn<() => Promise<Response>>().mockResolvedValue({
+                arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+                headers: { get: () => null },
+            } as unknown as Response)
+
+            await expect(provider.sendMedia('user123', 'https://example.com/unknown', 'caption')).rejects.toThrow(
+                '[sendMedia] Unable to determine content-type'
+            )
+        })
+
+        test('should always delete temp file even if sendFile throws', async () => {
+            global.fetch = jest.fn<() => Promise<Response>>().mockResolvedValue({
+                arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+                headers: { get: () => 'image/png' },
+            } as unknown as Response)
+
+            provider.client.sendFile = jest.fn<() => Promise<any>>().mockRejectedValue(new Error('Send failed'))
+
+            await expect(provider.sendMedia('user123', 'https://example.com/img.png', 'caption')).rejects.toThrow(
+                'Send failed'
+            )
+
+            // cleanup (unlinkSync) must still have been called
+            expect(fs.unlinkSync).toHaveBeenCalled()
+        })
+    })
+
+    // ===== busEvents — safe payload (no circular reference) =====
+
+    describe('#busEvents — safe payload', () => {
+        test('emitted payload must be JSON-serializable (no circular reference)', () => {
+            const events = provider['busEvents']()
+            const handler = events[0].func
+
+            let capturedPayload: any
+
+            ;(provider.emit as jest.Mock).mockImplementation((_event: string, payload: any) => {
+                capturedPayload = payload
+            })
+
+            const payload = {
+                message: { voice: false, media: null, message: 'hello world' },
+                body: 'hello world',
+            }
+
+            handler(payload as any)
+
+            expect(() => JSON.stringify(capturedPayload)).not.toThrow()
+        })
+
+        test('emitted payload should not contain _client (gramjs circular ref)', () => {
+            const events = provider['busEvents']()
+            const handler = events[0].func
+
+            let capturedPayload: any
+
+            ;(provider.emit as jest.Mock).mockImplementation((_event: string, payload: any) => {
+                capturedPayload = payload
+            })
+
+            // simulate a raw GramJS-like object with _client circular ref
+            const payload = {
+                message: { voice: false, media: null, message: 'test' },
+                body: 'test',
+            }
+
+            handler(payload as any)
+
+            const serialized = JSON.stringify(capturedPayload)
+            expect(serialized).not.toContain('_client')
+        })
+    })
+
+    // ===== constructor — TelegramClient options =====
+
+    describe('#constructor — TelegramClient options', () => {
+        test('should pass useWSS, deviceModel, systemVersion, appVersion to TelegramClient', () => {
+            const { TelegramClient } = require('telegram')
+            const callArgs = TelegramClient.mock.calls[TelegramClient.mock.calls.length - 1]
+            const options = callArgs[3]
+
+            expect(options.useWSS).toBe(true)
+            expect(options.deviceModel).toBe('BuilderBot Server')
+            expect(options.systemVersion).toBe('Node.js')
+            expect(options.appVersion).toBe('1.0.0')
+            expect(options.connectionRetries).toBe(5)
         })
     })
 })
