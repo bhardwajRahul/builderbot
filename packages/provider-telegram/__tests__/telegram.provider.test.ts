@@ -283,7 +283,7 @@ describe('#TelegramProvider', () => {
 
             const result = await provider.saveFile(ctx as any, { path: '/tmp' })
 
-            expect(result).toBeUndefined()
+            expect(result).toBe('')
         })
     })
 
