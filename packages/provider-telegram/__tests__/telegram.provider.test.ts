@@ -52,6 +52,7 @@ jest.mock('telegram', () => ({
     Api: {
         User: jest.fn(),
         SendMessageTypingAction: jest.fn().mockImplementation(() => ({ className: 'SendMessageTypingAction' })),
+        SendMessageRecordAudioAction: jest.fn().mockImplementation(() => ({ className: 'SendMessageRecordAudioAction' })),
         SendMessageCancelAction: jest.fn().mockImplementation(() => ({ className: 'SendMessageCancelAction' })),
         messages: {
             SetTyping: jest.fn().mockImplementation((args) => ({ ...args, className: 'SetTyping' })),
@@ -415,6 +416,18 @@ describe('#TelegramProvider', () => {
             await provider.sendPresenceUpdate('user123', 'cancel')
 
             expect(Api.SendMessageCancelAction).toHaveBeenCalled()
+            expect(Api.messages.SetTyping).toHaveBeenCalledWith(
+                expect.objectContaining({ peer: 'user123' })
+            )
+            expect(provider.client.invoke).toHaveBeenCalled()
+        })
+
+        test('should send recording action when action is "recording"', async () => {
+            const { Api } = require('telegram')
+
+            await provider.sendPresenceUpdate('user123', 'recording')
+
+            expect(Api.SendMessageRecordAudioAction).toHaveBeenCalled()
             expect(Api.messages.SetTyping).toHaveBeenCalledWith(
                 expect.objectContaining({ peer: 'user123' })
             )

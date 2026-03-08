@@ -123,19 +123,28 @@ class TelegramProvider extends ProviderClass<TelegramEvents> {
     }
 
     /**
-     * Send a typing indicator to a chat
-     * @param chatId - The chat/user ID to send the typing indicator to
-     * @param action - 'typing' to show typing indicator, 'cancel' to hide it (default: 'typing')
+     * Send a presence indicator to a chat
+     * @param chatId - The chat/user ID to send the indicator to
+     * @param action - 'typing' to show typing indicator, 'recording' to show recording indicator, 'cancel' to hide it (default: 'typing')
      * @example
      * // Show typing indicator
      * await provider.sendPresenceUpdate('user123')
      *
-     * // Hide typing indicator
+     * // Show recording indicator
+     * await provider.sendPresenceUpdate('user123', 'recording')
+     *
+     * // Hide indicator
      * await provider.sendPresenceUpdate('user123', 'cancel')
      */
-    async sendPresenceUpdate(chatId: EntityLike, action: 'typing' | 'cancel' = 'typing'): Promise<void> {
-        const typingAction =
-            action === 'typing' ? new Api.SendMessageTypingAction() : new Api.SendMessageCancelAction()
+    async sendPresenceUpdate(chatId: EntityLike, action: 'typing' | 'recording' | 'cancel' = 'typing'): Promise<void> {
+        let typingAction: Api.TypeSendMessageAction
+        if (action === 'recording') {
+            typingAction = new Api.SendMessageRecordAudioAction()
+        } else if (action === 'cancel') {
+            typingAction = new Api.SendMessageCancelAction()
+        } else {
+            typingAction = new Api.SendMessageTypingAction()
+        }
         await this.client.invoke(
             new Api.messages.SetTyping({
                 peer: chatId,
