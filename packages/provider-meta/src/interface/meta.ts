@@ -54,6 +54,6 @@ export interface MetaInterface {
     sendFile: (to: string, mediaInput: string | null, caption: string, context: string | null) => Promise<any>
     sendAudio: (to: string, fileOpus: string, context: string | null) => void
     markAsRead: (wa_id: string) => Promise<any>
-    sendPresenceUpdate: (to: string, status?: 'typing_on' | 'typing_off') => Promise<any>
-    typing: (to: string, ms?: number) => Promise<void>
+    sendPresenceUpdate: (messageId: string) => Promise<any>
+    typing: (messageId: string, ms?: number) => Promise<void>
 }
