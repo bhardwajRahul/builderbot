@@ -1027,44 +1027,42 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
     }
 
     /**
-     * Send presence update to simulate typing indicator
-     * @param to - Recipient phone number
-     * @param status - Presence status: 'typing_on' to show typing indicator, 'typing_off' to hide it
+     * Send presence update to simulate typing indicator using Meta Cloud API format.
+     * Requires the message_id of the incoming message that triggered this response.
+     * The typing indicator lasts up to 25 seconds or until a message is sent.
+     * @param messageId - The wamid of the incoming message (from the user)
      * @returns Promise with the API response
      * @example
-     * // Show typing indicator
-     * await provider.sendPresenceUpdate('1234567890')
-     *
-     * // Hide typing indicator
-     * await provider.sendPresenceUpdate('1234567890', 'typing_off')
+     * await provider.sendPresenceUpdate('wamid.HBgLMTIzNDU2Nzg5MA==')
      */
-    sendPresenceUpdate = async (to: string, status: 'typing_on' | 'typing_off' = 'typing_on') => {
-        to = parseMetaNumber(to)
+    sendPresenceUpdate = async (messageId: string) => {
         const body = {
             messaging_product: 'whatsapp',
-            recipient_type: 'individual',
-            to,
-            type: status,
+            status: 'read',
+            message_id: messageId,
+            typing_indicator: {
+                type: 'text',
+            },
         }
         return this.sendMessageToApi(body)
     }
 
     /**
-     * Show a typing indicator to the recipient
-     * @param to - Recipient phone number
-     * @param ms - Optional duration in milliseconds after which the typing indicator is hidden automatically
+     * Show a typing indicator to the recipient.
+     * Requires the message_id of the incoming message that triggered this response.
+     * @param messageId - The wamid of the incoming message (from the user)
+     * @param ms - Optional duration in milliseconds to wait (typing indicator disappears automatically after 25s or when a message is sent)
      * @example
-     * // Show typing indicator indefinitely
-     * await provider.typing('1234567890')
+     * // Show typing indicator
+     * await provider.typing('wamid.HBgLMTIzNDU2Nzg5MA==')
      *
-     * // Show typing indicator for 3 seconds then hide it
-     * await provider.typing('1234567890', 3000)
+     * // Show typing indicator and wait 3 seconds before continuing
+     * await provider.typing('wamid.HBgLMTIzNDU2Nzg5MA==', 3000)
      */
-    typing = async (to: string, ms?: number): Promise<void> => {
-        await this.sendPresenceUpdate(to, 'typing_on')
+    typing = async (messageId: string, ms?: number): Promise<void> => {
+        await this.sendPresenceUpdate(messageId)
         if (ms) {
             await new Promise((resolve) => setTimeout(resolve, ms))
-            await this.sendPresenceUpdate(to, 'typing_off')
         }
     }
 
