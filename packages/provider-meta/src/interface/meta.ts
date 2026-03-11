@@ -55,4 +55,5 @@ export interface MetaInterface {
     sendAudio: (to: string, fileOpus: string, context: string | null) => void
     markAsRead: (wa_id: string) => Promise<any>
     sendPresenceUpdate: (to: string, status?: 'typing_on' | 'typing_off') => Promise<any>
+    typing: (to: string, ms?: number) => Promise<void>
 }

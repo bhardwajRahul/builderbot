@@ -1050,6 +1050,25 @@ class MetaProvider extends ProviderClass<MetaInterface> implements MetaInterface
     }
 
     /**
+     * Show a typing indicator to the recipient
+     * @param to - Recipient phone number
+     * @param ms - Optional duration in milliseconds after which the typing indicator is hidden automatically
+     * @example
+     * // Show typing indicator indefinitely
+     * await provider.typing('1234567890')
+     *
+     * // Show typing indicator for 3 seconds then hide it
+     * await provider.typing('1234567890', 3000)
+     */
+    typing = async (to: string, ms?: number): Promise<void> => {
+        await this.sendPresenceUpdate(to, 'typing_on')
+        if (ms) {
+            await new Promise((resolve) => setTimeout(resolve, ms))
+            await this.sendPresenceUpdate(to, 'typing_off')
+        }
+    }
+
+    /**
      * Queue a message to be sent via the Meta API (rate-limited)
      * @param body - Message body conforming to Meta API specification
      * @returns Promise with the API response

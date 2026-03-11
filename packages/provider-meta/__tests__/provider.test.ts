@@ -1125,4 +1125,38 @@ describe('#MetaProvider', () => {
             })
         })
     })
+
+    describe('#typing', () => {
+        test('should send typing_on when called without duration', async () => {
+            // Arrange
+            const fakeRecipient = '1234567890'
+            jest.spyOn(metaProvider, 'sendPresenceUpdate').mockResolvedValue({ success: true })
+
+            // Act
+            await metaProvider.typing(fakeRecipient)
+
+            // Assert
+            expect(metaProvider.sendPresenceUpdate).toHaveBeenCalledTimes(1)
+            expect(metaProvider.sendPresenceUpdate).toHaveBeenCalledWith(fakeRecipient, 'typing_on')
+        })
+
+        test('should send typing_on then typing_off when called with duration', async () => {
+            // Arrange
+            const fakeRecipient = '1234567890'
+            jest.useFakeTimers()
+            jest.spyOn(metaProvider, 'sendPresenceUpdate').mockResolvedValue({ success: true })
+
+            // Act
+            const typingPromise = metaProvider.typing(fakeRecipient, 1000)
+            jest.runAllTimers()
+            await typingPromise
+
+            // Assert
+            expect(metaProvider.sendPresenceUpdate).toHaveBeenCalledTimes(2)
+            expect(metaProvider.sendPresenceUpdate).toHaveBeenNthCalledWith(1, fakeRecipient, 'typing_on')
+            expect(metaProvider.sendPresenceUpdate).toHaveBeenNthCalledWith(2, fakeRecipient, 'typing_off')
+
+            jest.useRealTimers()
+        })
+    })
 })
