@@ -1074,55 +1074,56 @@ describe('#MetaProvider', () => {
     })
 
     describe('#sendPresenceUpdate', () => {
-        test('should send typing_on status by default', async () => {
+        test('should send typing_indicator with incoming message_id', async () => {
             // Arrange
-            const fakeRecipient = '1234567890'
+            const fakeMessageId = 'wamid.HBgLMTIzNDU2Nzg5MA=='
             jest.spyOn(metaProvider, 'sendMessageToApi').mockResolvedValue({ success: true })
 
             // Act
-            await metaProvider.sendPresenceUpdate(fakeRecipient)
+            await metaProvider.sendPresenceUpdate(fakeMessageId)
 
             // Assert
             expect(metaProvider.sendMessageToApi).toHaveBeenCalledWith({
                 messaging_product: 'whatsapp',
-                recipient_type: 'individual',
-                to: fakeRecipient,
-                type: 'typing_on',
+                status: 'read',
+                message_id: fakeMessageId,
+                typing_indicator: {
+                    type: 'text',
+                },
             })
         })
+    })
 
-        test('should send typing_on status when explicitly specified', async () => {
+    describe('#typing', () => {
+        test('should call sendPresenceUpdate with messageId when called without duration', async () => {
             // Arrange
-            const fakeRecipient = '1234567890'
-            jest.spyOn(metaProvider, 'sendMessageToApi').mockResolvedValue({ success: true })
+            const fakeMessageId = 'wamid.HBgLMTIzNDU2Nzg5MA=='
+            jest.spyOn(metaProvider, 'sendPresenceUpdate').mockResolvedValue({ success: true })
 
             // Act
-            await metaProvider.sendPresenceUpdate(fakeRecipient, 'typing_on')
+            await metaProvider.typing(fakeMessageId)
 
             // Assert
-            expect(metaProvider.sendMessageToApi).toHaveBeenCalledWith({
-                messaging_product: 'whatsapp',
-                recipient_type: 'individual',
-                to: fakeRecipient,
-                type: 'typing_on',
-            })
+            expect(metaProvider.sendPresenceUpdate).toHaveBeenCalledTimes(1)
+            expect(metaProvider.sendPresenceUpdate).toHaveBeenCalledWith(fakeMessageId)
         })
 
-        test('should send typing_off status when specified', async () => {
+        test('should call sendPresenceUpdate then wait when called with duration', async () => {
             // Arrange
-            const fakeRecipient = '1234567890'
-            jest.spyOn(metaProvider, 'sendMessageToApi').mockResolvedValue({ success: true })
+            const fakeMessageId = 'wamid.HBgLMTIzNDU2Nzg5MA=='
+            jest.useFakeTimers()
+            jest.spyOn(metaProvider, 'sendPresenceUpdate').mockResolvedValue({ success: true })
 
             // Act
-            await metaProvider.sendPresenceUpdate(fakeRecipient, 'typing_off')
+            const typingPromise = metaProvider.typing(fakeMessageId, 1000)
+            jest.runAllTimers()
+            await typingPromise
 
             // Assert
-            expect(metaProvider.sendMessageToApi).toHaveBeenCalledWith({
-                messaging_product: 'whatsapp',
-                recipient_type: 'individual',
-                to: fakeRecipient,
-                type: 'typing_off',
-            })
+            expect(metaProvider.sendPresenceUpdate).toHaveBeenCalledTimes(1)
+            expect(metaProvider.sendPresenceUpdate).toHaveBeenCalledWith(fakeMessageId)
+
+            jest.useRealTimers()
         })
     })
 })
