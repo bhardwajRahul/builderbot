@@ -125,7 +125,7 @@ export class MetaCoreVendor extends EventEmitter {
 
         try {
             await Promise.all(
-                messages.map( async (message: any) => {
+                messages.map(async (message: any) => {
                     let contact: ContactMeta
                     if (Array.isArray(contacts)) [contact] = contacts
                     const to = body.entry[0].changes[0].value?.metadata?.display_phone_number
@@ -144,6 +144,7 @@ export class MetaCoreVendor extends EventEmitter {
                         to,
                         pushName,
                         message,
+                        fromMe: message?.fromMe ?? false,
                         jwtToken,
                         numberId,
                         version,

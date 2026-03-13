@@ -112,6 +112,7 @@ export interface Message {
     order?: Order
     id?: string
     caption?: string
+    fromMe?: boolean
 }
 
 export interface ParamsIncomingMessage {
@@ -124,6 +125,7 @@ export interface ParamsIncomingMessage {
     version: string
     message: any
     fileData?: File | null
+    fromMe?: boolean
 }
 
 export type TextGenericParams = {

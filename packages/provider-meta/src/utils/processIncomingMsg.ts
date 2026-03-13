@@ -13,6 +13,7 @@ export const processIncomingMessage = async ({
     version,
     numberId,
     fileData,
+    fromMe,
 }: ParamsIncomingMessage): Promise<Message> => {
     let responseObj: Message
 
@@ -183,5 +184,6 @@ export const processIncomingMessage = async ({
         ...responseObj,
         message_id: messageId,
         timestamp: messageTimestamp,
+        fromMe,
     }
 }
