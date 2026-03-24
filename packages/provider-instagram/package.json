@@ -1,6 +1,6 @@
 {
   "name": "@builderbot/provider-instagram",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Provider for Instagram Messaging",
   "keywords": [
     "instagram",
@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/codigoencasa/bot-whatsapp#readme",
   "devDependencies": {
-    "@builderbot/bot": "^1.4.0",
+    "@builderbot/bot": "^1.4.1",
     "@jest/globals": "^30.2.0",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-json": "^6.1.0",
