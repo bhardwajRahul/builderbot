@@ -61,8 +61,11 @@ const fullSamplesFlow = addKeyword(['samples', utils.setEvent('SAMPLES')])
 const main = async () => {
     const adapterFlow = createFlow([welcomeFlow, registerFlow, fullSamplesFlow])
     
+    // If you experience ERRO AUTH issues, check the latest WhatsApp version at:
+    // https://wppconnect.io/whatsapp-versions/
+    // Example: version "2.3000.1035824857-alpha" -> [2, 3000, 1035824857]
     const adapterProvider = createProvider(Provider, 
-		{ version: [2, 3000, 1034028152] } 
+		{ version: [2, 3000, 1035824857] } 
 	)
     const adapterDB = new Database({
        host: process.env.POSTGRES_DB_HOST,
