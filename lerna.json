@@ -33,7 +33,8 @@
       "ignoreChanges": [
         "**/*"
       ],
-      "noVerifyAccess": true
+      "noVerifyAccess": true,
+      "syncWorkspaceLockfile": false
     }
   },
   "npmClient": "pnpm",
