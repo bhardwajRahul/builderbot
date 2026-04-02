@@ -1,6 +1,6 @@
 {
     "name": "@builderbot/provider-email",
-    "version": "1.4.1",
+    "version": "1.4.2-alpha.1",
     "description": "Email provider for BuilderBot using IMAP/SMTP",
     "author": "Leifer Mendez <leifer33@gmail.com>",
     "homepage": "https://github.com/codigoencasa/bot-whatsapp#readme",
@@ -29,7 +29,7 @@
         "url": "https://github.com/codigoencasa/bot-whatsapp/issues"
     },
     "devDependencies": {
-        "@builderbot/bot": "^1.4.1",
+        "@builderbot/bot": "workspace:^",
         "@jest/globals": "^30.2.0",
         "@rollup/plugin-commonjs": "^29.0.0",
         "@rollup/plugin-json": "^6.1.0",
