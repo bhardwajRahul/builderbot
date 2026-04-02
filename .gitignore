@@ -3,7 +3,9 @@
 /packages/portal/server
 /packages/*/starters
 /packages/*/node_modules
+/packages/*/*/node_modules
 /packages/*/dist
+/packages/*/*/dist
 /packages/*/*/tokens/*
 /packages/*/docs/dist
 /packages/provider/src/venom/tokens

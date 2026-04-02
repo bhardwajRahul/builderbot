@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises'
+
 import type {
     ChatwootContact,
     ChatwootConversation,
@@ -7,17 +9,54 @@ import type {
     ChatwootSearchContactsPayload,
 } from './types'
 
+/** Minimal MIME lookup by file extension — avoids external dependencies. */
+const getContentType = (filename: string): string => {
+    const ext = filename.split('.').pop()?.toLowerCase() ?? ''
+    const map: Record<string, string> = {
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        gif: 'image/gif',
+        webp: 'image/webp',
+        mp4: 'video/mp4',
+        mp3: 'audio/mpeg',
+        ogg: 'audio/ogg',
+        opus: 'audio/ogg',
+        wav: 'audio/wav',
+        pdf: 'application/pdf',
+        svg: 'image/svg+xml',
+    }
+    return map[ext] ?? 'application/octet-stream'
+}
+
 class ChatwootApi {
     private baseUrl: string
+    private token: string
     private headers: Record<string, string>
-    private accountId: number
 
     constructor(config: ChatwootPluginConfig) {
         this.baseUrl = `${config.url.replace(/\/$/, '')}/api/v1/accounts/${config.accountId}`
-        this.accountId = config.accountId
+        this.token = config.token
         this.headers = {
             'Content-Type': 'application/json',
             api_access_token: config.token,
+        }
+    }
+
+    /**
+     * Verifica que las credenciales sean válidas contra la API de Chatwoot.
+     * Retorna `true` si la cuenta es accesible.
+     */
+    async checkAccount(): Promise<boolean> {
+        try {
+            const response = await fetch(`${this.baseUrl}/`, {
+                method: 'GET',
+                headers: this.headers,
+            })
+            const data = (await response.json()) as { error?: string }
+            return !data?.error
+        } catch {
+            return false
         }
     }
 
@@ -163,12 +202,18 @@ class ChatwootApi {
 
     /**
      * Envía un mensaje a una conversación de Chatwoot.
+     * Si se provee `mediaSource` (URL o ruta local), el mensaje se envía con adjunto via FormData.
      */
     async sendMessage(
         conversationId: number,
         content: string,
-        messageType: 'incoming' | 'outgoing' = 'incoming'
+        messageType: 'incoming' | 'outgoing' = 'incoming',
+        mediaSource?: string | null
     ): Promise<ChatwootMessage> {
+        if (mediaSource) {
+            return this.sendMessageWithMedia(conversationId, content, messageType, mediaSource)
+        }
+
         const response = await fetch(`${this.baseUrl}/conversations/${conversationId}/messages`, {
             method: 'POST',
             headers: this.headers,
@@ -184,6 +229,95 @@ class ChatwootApi {
         }
 
         return (await response.json()) as ChatwootMessage
+    }
+
+    /**
+     * Envía un mensaje con adjunto multimedia a una conversación.
+     * `mediaSource` puede ser una URL https:// o una ruta local en disco.
+     */
+    private async sendMessageWithMedia(
+        conversationId: number,
+        content: string,
+        messageType: 'incoming' | 'outgoing',
+        mediaSource: string
+    ): Promise<ChatwootMessage> {
+        const form = new FormData()
+        form.set('content', content)
+        form.set('message_type', messageType)
+
+        try {
+            const isUrl = mediaSource.startsWith('http://') || mediaSource.startsWith('https://')
+
+            if (isUrl) {
+                const mediaResponse = await fetch(mediaSource)
+                if (mediaResponse.ok) {
+                    const buffer = await mediaResponse.arrayBuffer()
+                    const contentType = mediaResponse.headers.get('content-type') ?? 'application/octet-stream'
+                    const fileName = mediaSource.split('/').pop()?.split('?')[0] ?? 'file'
+                    form.set('attachments[]', new Blob([buffer], { type: contentType }), fileName)
+                }
+            } else {
+                const fileName = mediaSource.split('/').pop() ?? 'file'
+                const fileBuffer = await readFile(mediaSource)
+                const mimeType = getContentType(fileName)
+                form.set('attachments[]', new Blob([new Uint8Array(fileBuffer)], { type: mimeType }), fileName)
+            }
+        } catch (mediaErr) {
+            console.error('[Chatwoot] Could not attach media, sending text-only:', mediaErr)
+        }
+
+        const response = await fetch(`${this.baseUrl}/conversations/${conversationId}/messages`, {
+            method: 'POST',
+            headers: { api_access_token: this.token },
+            body: form,
+        })
+
+        if (!response.ok) {
+            const error = await response.text()
+            throw new Error(`[Chatwoot] Error sending message with media: ${error}`)
+        }
+
+        return (await response.json()) as ChatwootMessage
+    }
+
+    /**
+     * Busca un webhook existente cuya URL contenga `matchUrl`.
+     */
+    async findWebhook(matchUrl: string): Promise<{ id: number; url: string } | null> {
+        try {
+            const response = await fetch(`${this.baseUrl}/webhooks`, {
+                method: 'GET',
+                headers: this.headers,
+            })
+
+            if (!response.ok) return null
+
+            const data = (await response.json()) as { payload?: { webhooks?: Array<{ id: number; url: string }> } }
+            const webhooks = data?.payload?.webhooks ?? []
+            return webhooks.find((w) => w.url === matchUrl) ?? null
+        } catch {
+            return null
+        }
+    }
+
+    /**
+     * Crea un webhook en Chatwoot.
+     */
+    async createWebhook(url: string, subscriptions: string[]): Promise<void> {
+        try {
+            const response = await fetch(`${this.baseUrl}/webhooks`, {
+                method: 'POST',
+                headers: this.headers,
+                body: JSON.stringify({ webhook: { url, subscriptions } }),
+            })
+
+            if (!response.ok) {
+                const error = await response.text()
+                console.error(`[Chatwoot] Error creating webhook: ${error}`)
+            }
+        } catch (err) {
+            console.error('[Chatwoot] Error creating webhook:', err)
+        }
     }
 }
 

@@ -45,6 +45,7 @@
   "repository": "https://github.com/leifermendez/bot-whatsapp",
   "license": "ISC",
   "workspaces": [
+    "packages/plugins/*",
     "packages/bot",
     "packages/cli",
     "packages/create-builderbot",

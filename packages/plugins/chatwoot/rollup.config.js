@@ -10,6 +10,11 @@ export default {
             format: 'cjs',
             exports: 'named',
         },
+        {
+            dir: 'dist',
+            entryFileNames: '[name].mjs',
+            format: 'esm',
+        },
     ],
     plugins: [
         commonjs(),
