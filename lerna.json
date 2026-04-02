@@ -25,7 +25,8 @@
     "packages/provider-gohighlevel",
     "packages/provider-email",
     "packages/contexts-dialogflow",
-    "packages/contexts-dialogflow-cx"
+    "packages/contexts-dialogflow-cx",
+    "packages/plugins/chatwoot"
   ],
   "command": {
     "version": {
