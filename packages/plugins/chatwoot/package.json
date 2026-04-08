@@ -1,6 +1,6 @@
 {
     "name": "@builderbot/plugin-chatwoot",
-    "version": "1.4.2-alpha.3",
+    "version": "1.4.2-alpha.5",
     "description": "Plugin de Chatwoot para BuilderBot - Crea inbox, guarda contactos y sincroniza conversaciones automáticamente",
     "keywords": [
         "chatwoot",
@@ -42,7 +42,7 @@
     },
     "homepage": "https://github.com/codigoencasa/bot-whatsapp#readme",
     "dependencies": {
-        "@builderbot/bot": "^1.4.2-alpha.3"
+        "@builderbot/bot": "workspace:^"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^29.0.0",
