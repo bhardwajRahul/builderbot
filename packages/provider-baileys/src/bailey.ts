@@ -587,9 +587,10 @@ class BaileysProvider extends ProviderClass<WASocket> {
                         }
                     }
 
-                    // Preferir @s.whatsapp.net (remoteJidAlt) sobre @lid cuando esté disponible
-                    const { remoteJid, remoteJidAlt } = (messageCtx?.key ?? {}) as any
-                    const fromParse = remoteJid?.includes('@lid') ? remoteJidAlt || remoteJid : remoteJid
+                    // Buscar siempre el que tenga formato @s.whatsapp.net (puede estar en remoteJid o remoteJidAlt)
+                    const remoteJid = (messageCtx?.key as any)?.remoteJid
+                    const remoteJidAlt = (messageCtx?.key as any)?.remoteJidAlt
+                    const fromParse = remoteJid?.includes('@lid') ? remoteJidAlt || remoteJid?.split('@')[0] : remoteJid
 
                     let payload = {
                         ...messageCtx,
