@@ -54,7 +54,11 @@ describe('lidCache CRITICAL fixes', () => {
 
             // Verificar permisos: 0o600 = 384 en decimal
             const mode = stats.mode & 0o777
-            expect(mode).toBe(0o600)
+            if (process.platform === 'win32') {
+                expect(mode).toBe(0o666)
+            } else {
+                expect(mode).toBe(0o600)
+            }
 
             // Limpiar
             await rm(join(process.cwd(), `${session}_sessions`), { recursive: true, force: true })
@@ -82,7 +86,7 @@ describe('lidCache CRITICAL fixes', () => {
             await access(cacheFile)
 
             // Limpiar
-            const sessionDir = join(process.cwd(), safeCache['filePath'].replace(process.cwd(), '').split('/')[1])
+            const sessionDir = join(process.cwd(), safeCache['filePath'].replace(process.cwd(), '').split(/[\\/]/)[1])
             try {
                 await rm(sessionDir, { recursive: true, force: true })
             } catch {
