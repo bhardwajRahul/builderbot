@@ -233,7 +233,9 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
     }
 
     sendMessage = async (userId: string, message: string, options?: SendOptions): Promise<any> => {
-        // Check if media is provided in options
+        if (options?.comment?.id) {
+            return this.sendPrivateReply(options.comment.id, message)
+        }
         if (options?.media) {
             return this.sendMedia(userId, message, options.media)
         }
@@ -540,8 +542,13 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
             console.info('[Instagram] Private reply sent successfully')
             return response.data
         } catch (error) {
+            const igError = error.response?.data?.error
+            if (igError?.error_subcode === 2534022 || igError?.code === 10) {
+                console.warn('[Instagram] Comment window expired, skipping private reply to comment:', commentId)
+                return null
+            }
             console.error('[Instagram] Error sending private reply:', {
-                error: error.response?.data || error.message,
+                error: igError || error.message,
             })
             throw new Error('Failed to send private reply')
         }
