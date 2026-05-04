@@ -64,17 +64,18 @@ class CoreClass<P extends ProviderClass = any, D extends MemoryDB = any> extends
      * - Setup provider
      * - Setup generalArgs
      */
-    constructor(_flow: any, _database: D, _provider: P, _args: GeneralArgs) {
+    constructor(_flow: any, _database: D, _provider: P, _args: GeneralArgs | null | undefined) {
         super()
         this.flowClass = _flow
         this.database = _database
         this.provider = _provider
+        const args = _args ?? {}
         this.generalArgs = {
             ...this.generalArgs,
-            ..._args,
+            ...args,
             logs: {
                 ...this.generalArgs.logs,
-                ..._args.logs,
+                ...(args.logs ?? {}),
             },
         }
 
