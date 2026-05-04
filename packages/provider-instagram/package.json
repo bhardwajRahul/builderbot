@@ -1,6 +1,6 @@
 {
     "name": "@builderbot/provider-instagram",
-    "version": "1.4.2-alpha.12",
+    "version": "1.4.2-alpha.13",
     "description": "Provider for Instagram Messaging",
     "keywords": [
         "instagram",
