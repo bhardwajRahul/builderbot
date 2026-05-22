@@ -536,8 +536,8 @@ describe('#BaileysProvider', () => {
         })
     })
 
-    describe.skip('#sendPoll', () => {
-        test('should send poll message with correct options', async () => {
+    describe('#sendPoll', () => {
+        test('should send poll message with multiselect false (selectableCount 0)', async () => {
             // Arrange
             const numberIn = phoneNumber
             const text = 'Please vote'
@@ -554,10 +554,12 @@ describe('#BaileysProvider', () => {
 
             // Assert
             expect(result).toEqual('success')
-            expect(mockSendMessage).toHaveBeenCalled()
+            expect(mockSendMessage).toHaveBeenCalledWith(phoneNumber, {
+                poll: { name: text, values: poll.options, selectableCount: 0 },
+            })
         })
 
-        test('should send poll message with correct options multiselect undefined', async () => {
+        test('should send poll message with multiselect undefined (selectableCount 1)', async () => {
             // Arrange
             const numberIn = phoneNumber
             const text = 'Please vote'
@@ -574,10 +576,12 @@ describe('#BaileysProvider', () => {
 
             // Assert
             expect(result).toEqual('success')
-            expect(mockSendMessage).toHaveBeenCalled()
+            expect(mockSendMessage).toHaveBeenCalledWith(phoneNumber, {
+                poll: { name: text, values: poll.options, selectableCount: 1 },
+            })
         })
 
-        test('should send poll message with correct options multiselect true', async () => {
+        test('should send poll message with multiselect true (selectableCount 1)', async () => {
             // Arrange
             const numberIn = phoneNumber
             const text = 'Please vote'
@@ -587,14 +591,16 @@ describe('#BaileysProvider', () => {
             }
 
             const mockSendMessage = mockSendSuccess
-            provider.vendor.sendMessage = mockSendSuccess
+            provider.vendor.sendMessage = mockSendMessage
 
             // Act
             const result = await provider.sendPoll(numberIn, text, poll)
 
             // Assert
             expect(result).toEqual('success')
-            expect(mockSendMessage).toHaveBeenCalled()
+            expect(mockSendMessage).toHaveBeenCalledWith(phoneNumber, {
+                poll: { name: text, values: poll.options, selectableCount: 1 },
+            })
         })
 
         test('should return false if options length is less than 2', async () => {
