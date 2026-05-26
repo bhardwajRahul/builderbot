@@ -376,6 +376,14 @@ describe('InstagramProvider', () => {
             const result = await provider.sendMedia('user123', '', 'https://example.com/video.mp4')
 
             expect(result).toEqual({ message_id: 'msg_123' })
+            expect(axios.post).toHaveBeenLastCalledWith(
+                expect.stringContaining('/messages'),
+                expect.objectContaining({
+                    message: expect.objectContaining({
+                        attachment: expect.objectContaining({ type: 'video' }),
+                    }),
+                })
+            )
         })
 
         it('should send audio when mime type is audio', async () => {
@@ -397,6 +405,14 @@ describe('InstagramProvider', () => {
             const result = await provider.sendMedia('user123', '', 'https://example.com/audio.mp3')
 
             expect(result).toEqual({ message_id: 'msg_123' })
+            expect(axios.post).toHaveBeenLastCalledWith(
+                expect.stringContaining('/messages'),
+                expect.objectContaining({
+                    message: expect.objectContaining({
+                        attachment: expect.objectContaining({ type: 'audio' }),
+                    }),
+                })
+            )
         })
 
         it('should warn and return when file type is not supported', async () => {

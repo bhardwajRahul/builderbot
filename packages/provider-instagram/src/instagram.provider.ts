@@ -333,14 +333,14 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
      * @param attachmentId - The attachment_id from uploadAttachment
      * @returns Promise with the API response
      */
-    private sendAttachmentById = async (userId: string, attachmentId: string): Promise<any> => {
+    private sendAttachmentById = async (userId: string, attachmentId: string, type: 'image' | 'video' | 'audio'): Promise<any> => {
         const url = `${INSTAGRAM_API_URL}${this.globalVendorArgs.version}/${this.globalVendorArgs.igAccountId}/messages`
         try {
             const body = {
                 recipient: { id: userId },
                 message: {
                     attachment: {
-                        type: 'image',
+                        type,
                         payload: {
                             attachment_id: attachmentId,
                         },
@@ -372,7 +372,7 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
      */
     sendImageFromFile = async (userId: string, filePath: string): Promise<any> => {
         const attachmentId = await this.uploadAttachment(filePath, 'image')
-        return this.sendAttachmentById(userId, attachmentId)
+        return this.sendAttachmentById(userId, attachmentId, 'image')
     }
 
     /**
@@ -383,7 +383,7 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
      */
     sendVideoFromFile = async (userId: string, filePath: string): Promise<any> => {
         const attachmentId = await this.uploadAttachment(filePath, 'video')
-        return this.sendAttachmentById(userId, attachmentId)
+        return this.sendAttachmentById(userId, attachmentId, 'video')
     }
 
     /**
@@ -394,7 +394,7 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
      */
     sendAudioFromFile = async (userId: string, filePath: string): Promise<any> => {
         const attachmentId = await this.uploadAttachment(filePath, 'audio')
-        return this.sendAttachmentById(userId, attachmentId)
+        return this.sendAttachmentById(userId, attachmentId, 'audio')
     }
 
     /**

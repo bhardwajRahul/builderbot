@@ -90,9 +90,13 @@ export class InstagramEvents extends EventEmitterClass<ProviderEventTypes> {
         if (!messagingEvent.message) return
 
         const isEcho = messagingEvent.message?.is_echo || messagingEvent.message?.is_self
-        if (isEcho) return
+        if (isEcho) {
+            this.handleEcho(messagingEvent)
+            return
+        }
 
-        const sendObj = {
+        const attachment = messagingEvent.message?.attachments?.[0]
+        const sendObj: Record<string, any> = {
             body: messagingEvent.message?.text || '',
             from: messagingEvent.sender.id,
             name: '',
@@ -104,8 +108,7 @@ export class InstagramEvents extends EventEmitterClass<ProviderEventTypes> {
             messageId: messagingEvent.message?.mid || '',
         }
 
-        if (messagingEvent.message?.attachments && messagingEvent.message.attachments.length > 0) {
-            const attachment = messagingEvent.message.attachments[0]
+        if (attachment) {
             switch (attachment.type) {
                 case 'image':
                     sendObj.body = utils.generateRefProvider('_event_media_')
@@ -120,9 +123,47 @@ export class InstagramEvents extends EventEmitterClass<ProviderEventTypes> {
                     sendObj.body = utils.generateRefProvider('_event_document_')
                     break
             }
+            sendObj.data = { media: { url: attachment.payload?.url || '' } }
         }
 
-        this.emit('message', sendObj)
+        this.emit('message', sendObj as any)
+    }
+
+    private handleEcho = (messagingEvent: NonNullable<InstagramMessage['entry'][0]['messaging']>[0]) => {
+        if (!messagingEvent.message) return
+
+        const attachment = messagingEvent.message?.attachments?.[0]
+        let body = messagingEvent.message?.text || ''
+
+        if (attachment) {
+            switch (attachment.type) {
+                case 'image':
+                case 'video':
+                    body = utils.generateRefProvider('_event_media_')
+                    break
+                case 'audio':
+                    body = utils.generateRefProvider('_event_voice_note_')
+                    break
+                case 'file':
+                    body = utils.generateRefProvider('_event_document_')
+                    break
+            }
+        }
+
+        const sendObj: Record<string, any> = {
+            body,
+            from: messagingEvent.recipient.id,
+            name: '',
+            fromMe: true,
+            timestamp: messagingEvent.timestamp,
+            messageId: messagingEvent.message?.mid || '',
+        }
+
+        if (attachment) {
+            sendObj.data = { media: { url: attachment.payload?.url || '' } }
+        }
+
+        this.emit('host', sendObj)
     }
 
     private handlePostback = (messagingEvent: NonNullable<InstagramMessage['entry'][0]['messaging']>[0]) => {
