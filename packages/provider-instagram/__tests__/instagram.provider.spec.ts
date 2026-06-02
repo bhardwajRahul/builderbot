@@ -663,7 +663,7 @@ describe('InstagramProvider', () => {
             const result = await provider.replyComment('comment_456', 'Thanks for your comment!')
 
             expect(axios.post).toHaveBeenCalledWith(
-                `https://graph.facebook.com/${mockConfig.version}/comment_456/replies`,
+                `https://graph.instagram.com/${mockConfig.version}/comment_456/replies`,
                 expect.objectContaining({
                     message: 'Thanks for your comment!',
                     access_token: mockConfig.accessToken,

@@ -12,7 +12,6 @@ import type { Middleware } from 'polka'
 import { InstagramEvents, InstagramListenMode } from './instagram.events'
 
 const INSTAGRAM_API_URL = 'https://graph.instagram.com/'
-const FACEBOOK_GRAPH_API_URL = 'https://graph.facebook.com/'
 
 export type InstagramArgs = GlobalVendorArgs & {
     accessToken: string
@@ -333,7 +332,11 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
      * @param attachmentId - The attachment_id from uploadAttachment
      * @returns Promise with the API response
      */
-    private sendAttachmentById = async (userId: string, attachmentId: string, type: 'image' | 'video' | 'audio'): Promise<any> => {
+    private sendAttachmentById = async (
+        userId: string,
+        attachmentId: string,
+        type: 'image' | 'video' | 'audio'
+    ): Promise<any> => {
         const url = `${INSTAGRAM_API_URL}${this.globalVendorArgs.version}/${this.globalVendorArgs.igAccountId}/messages`
         try {
             const body = {
@@ -573,12 +576,18 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
 
     /**
      * Reply to a comment on a media post (public reply visible on the post)
-     * Uses the Facebook Graph API endpoint: POST /{comment-id}/replies
+     * Uses the Instagram Graph API endpoint: POST /{comment-id}/replies
+     *
+     * Must use graph.instagram.com (not graph.facebook.com): this provider is
+     * built for Instagram Login, whose tokens (prefix `IGAA`) only parse on the
+     * Instagram Graph API. Hitting graph.facebook.com returns OAuthException
+     * code 190 ("Cannot parse access token"). This mirrors sendPrivateReply and
+     * every other method in this class.
      * @param commentId - The ID of the comment to reply to
      * @param message - The reply text
      */
     replyComment = async (commentId: string, message: string): Promise<any> => {
-        const url = `${FACEBOOK_GRAPH_API_URL}${this.globalVendorArgs.version}/${commentId}/replies`
+        const url = `${INSTAGRAM_API_URL}${this.globalVendorArgs.version}/${commentId}/replies`
         try {
             const body = {
                 message,

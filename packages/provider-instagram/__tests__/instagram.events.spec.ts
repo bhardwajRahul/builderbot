@@ -333,7 +333,7 @@ describe('InstagramEvents', () => {
             )
         })
 
-        it('should ignore echo messages', () => {
+        it('should not emit a user message for echo messages (emits host instead)', () => {
             const payload: InstagramMessage = {
                 object: 'instagram',
                 entry: [
@@ -357,7 +357,21 @@ describe('InstagramEvents', () => {
             }
 
             instagramEvents.eventInMsg(payload)
-            expect(instagramEvents.emit).not.toHaveBeenCalled()
+
+            // Echo messages are outbound (sent by the account itself), so they
+            // must NOT be processed as inbound user messages...
+            expect(instagramEvents.emit).not.toHaveBeenCalledWith('message', expect.anything())
+            // ...but they ARE emitted as 'host' events so the CRM can track
+            // outbound messages. recipient.id is the actual user (fromMe: true).
+            expect(instagramEvents.emit).toHaveBeenCalledWith(
+                'host',
+                expect.objectContaining({
+                    body: 'Echo message',
+                    from: 'recipient_id',
+                    fromMe: true,
+                    messageId: 'message_id',
+                })
+            )
         })
 
         it('should handle comment events when listenMode is comment', () => {
@@ -500,14 +514,8 @@ describe('InstagramEvents', () => {
             instagramEvents.eventInMsg(payload)
 
             expect(instagramEvents.emit).toHaveBeenCalledTimes(2)
-            expect(instagramEvents.emit).toHaveBeenCalledWith(
-                'message',
-                expect.objectContaining({ body: 'Hello DM' })
-            )
-            expect(instagramEvents.emit).toHaveBeenCalledWith(
-                'message',
-                expect.objectContaining({ body: 'Nice!' })
-            )
+            expect(instagramEvents.emit).toHaveBeenCalledWith('message', expect.objectContaining({ body: 'Hello DM' }))
+            expect(instagramEvents.emit).toHaveBeenCalledWith('message', expect.objectContaining({ body: 'Nice!' }))
         })
 
         it('should ignore comments when listenMode is message', () => {
