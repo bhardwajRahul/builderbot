@@ -739,4 +739,184 @@ describe('InstagramProvider', () => {
             expect(result).toBe('')
         })
     })
+
+    describe('getUserProfile (private) — User Profile API enrichment', () => {
+        let provider: InstagramProvider
+
+        beforeEach(() => {
+            provider = new InstagramProvider(mockConfig)
+        })
+
+        it('should return name and username on success', async () => {
+            const axios = require('axios')
+            axios.get.mockResolvedValueOnce({
+                data: { name: 'John Doe', username: 'johndoe', id: 'igsid_001' },
+            })
+
+            const result = await (provider as any).getUserProfile('igsid_001')
+
+            expect(axios.get).toHaveBeenCalledWith(
+                `https://graph.instagram.com/${mockConfig.version}/igsid_001?fields=name,username&access_token=${mockConfig.accessToken}`,
+                { timeout: 3000 }
+            )
+            expect(result).toEqual({ name: 'John Doe', username: 'johndoe' })
+        })
+
+        it('should fall back to username as name when name field is absent', async () => {
+            const axios = require('axios')
+            axios.get.mockResolvedValueOnce({
+                data: { username: 'noname_user', id: 'igsid_002' },
+            })
+
+            const result = await (provider as any).getUserProfile('igsid_002')
+
+            expect(result).toEqual({ name: 'noname_user', username: 'noname_user' })
+        })
+
+        it('should cache the result and not re-call the API on a second lookup', async () => {
+            const axios = require('axios')
+            axios.get.mockResolvedValue({
+                data: { name: 'Cached User', username: 'cached', id: 'igsid_003' },
+            })
+
+            await (provider as any).getUserProfile('igsid_003')
+            await (provider as any).getUserProfile('igsid_003')
+
+            expect(axios.get).toHaveBeenCalledTimes(1)
+        })
+
+        it('should return null (non-fatal) when API call fails', async () => {
+            const axios = require('axios')
+            axios.get.mockRejectedValueOnce(new Error('Network error'))
+
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+
+            const result = await (provider as any).getUserProfile('igsid_bad')
+
+            expect(result).toBeNull()
+            expect(warnSpy).toHaveBeenCalledWith(
+                '[Instagram] getUserProfile failed (non-fatal):',
+                expect.objectContaining({ igsid: 'igsid_bad' })
+            )
+
+            warnSpy.mockRestore()
+        })
+
+        it('should return null (non-fatal) on consent required error (code 100)', async () => {
+            const axios = require('axios')
+            axios.isAxiosError.mockReturnValue(true)
+            axios.get.mockRejectedValueOnce({
+                isAxiosError: true,
+                response: {
+                    data: {
+                        error: {
+                            message: 'User consent is required to access user profile.',
+                            code: 100,
+                        },
+                    },
+                },
+            })
+
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+
+            const result = await (provider as any).getUserProfile('igsid_consent')
+
+            expect(result).toBeNull()
+            expect(warnSpy).toHaveBeenCalled()
+
+            warnSpy.mockRestore()
+        })
+
+        it('should re-fetch after the TTL has expired', async () => {
+            const axios = require('axios')
+            axios.get.mockResolvedValue({
+                data: { name: 'TTL User', username: 'ttluser', id: 'igsid_ttl' },
+            })
+
+            await (provider as any).getUserProfile('igsid_ttl')
+
+            // Manually expire the cache entry
+            const cache: Map<string, { name: string; username: string; ts: number }> = (provider as any).profileCache
+            cache.set('igsid_ttl', { name: 'TTL User', username: 'ttluser', ts: 0 })
+
+            await (provider as any).getUserProfile('igsid_ttl')
+
+            expect(axios.get).toHaveBeenCalledTimes(2)
+        })
+    })
+
+    describe('busEvents message — DM enrichment', () => {
+        let provider: InstagramProvider
+
+        beforeEach(() => {
+            provider = new InstagramProvider(mockConfig)
+        })
+
+        it('should enrich DM payload with name and username before emitting', async () => {
+            const axios = require('axios')
+            axios.get.mockResolvedValueOnce({
+                data: { name: 'Jane Doe', username: 'janedoe', id: 'igsid_dm' },
+            })
+
+            const messageHandler = provider.busEvents().find((e) => e.event === 'message')
+            const payload = { from: 'igsid_dm', name: '', body: 'Hello' }
+
+            await (messageHandler!.func as (p: typeof payload) => Promise<void>)(payload)
+
+            expect(provider.emit).toHaveBeenCalledWith(
+                'message',
+                expect.objectContaining({ name: 'Jane Doe', username: 'janedoe' })
+            )
+        })
+
+        it('should emit DM without enrichment when getUserProfile fails', async () => {
+            const axios = require('axios')
+            axios.get.mockRejectedValueOnce(new Error('Timeout'))
+
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+
+            const messageHandler = provider.busEvents().find((e) => e.event === 'message')
+            const payload = { from: 'igsid_fail', name: '', body: 'Hi' }
+
+            await (messageHandler!.func as (p: typeof payload) => Promise<void>)(payload)
+
+            // Should still emit the message despite the error
+            expect(provider.emit).toHaveBeenCalledWith('message', expect.objectContaining({ body: 'Hi' }))
+            // name and username remain unset since enrichment failed
+            const emitted = (provider.emit as ReturnType<typeof jest.fn>).mock.calls[0][1]
+            expect(emitted.username).toBeUndefined()
+
+            warnSpy.mockRestore()
+        })
+
+        it('should skip enrichment for comment payloads (username already present)', async () => {
+            const axios = require('axios')
+
+            const messageHandler = provider.busEvents().find((e) => e.event === 'message')
+            const payload = {
+                from: 'igsid_comment',
+                name: 'commenter',
+                username: 'commenter',
+                body: 'Nice!',
+                comment: { id: 'cmt_1', parentId: null, mediaId: 'media_1', username: 'commenter' },
+            }
+
+            await (messageHandler!.func as (p: typeof payload) => Promise<void>)(payload)
+
+            // API should NOT be called for comments (they already have the username)
+            expect(axios.get).not.toHaveBeenCalled()
+            expect(provider.emit).toHaveBeenCalledWith('message', expect.objectContaining({ body: 'Nice!' }))
+        })
+
+        it('should skip enrichment when name is already populated (e.g. second call from cache boundary)', async () => {
+            const axios = require('axios')
+
+            const messageHandler = provider.busEvents().find((e) => e.event === 'message')
+            const payload = { from: 'igsid_named', name: 'Already Set', body: 'Hey' }
+
+            await (messageHandler!.func as (p: typeof payload) => Promise<void>)(payload)
+
+            expect(axios.get).not.toHaveBeenCalled()
+        })
+    })
 })

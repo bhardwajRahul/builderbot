@@ -1,5 +1,5 @@
 import { EventEmitterClass, utils } from '@builderbot/bot'
-import { ProviderEventTypes } from '@builderbot/bot/dist/types'
+import type { BotContext, ProviderEventTypes } from '@builderbot/bot/dist/types'
 
 export type InstagramListenMode = 'message' | 'comment' | 'both'
 
@@ -96,7 +96,7 @@ export class InstagramEvents extends EventEmitterClass<ProviderEventTypes> {
         }
 
         const attachment = messagingEvent.message?.attachments?.[0]
-        const sendObj: Record<string, any> = {
+        const sendObj: BotContext = {
             body: messagingEvent.message?.text || '',
             from: messagingEvent.sender.id,
             name: '',
@@ -126,7 +126,7 @@ export class InstagramEvents extends EventEmitterClass<ProviderEventTypes> {
             sendObj.data = { media: { url: attachment.payload?.url || '' } }
         }
 
-        this.emit('message', sendObj as any)
+        this.emit('message', sendObj)
     }
 
     private handleEcho = (messagingEvent: NonNullable<InstagramMessage['entry'][0]['messaging']>[0]) => {
@@ -150,7 +150,7 @@ export class InstagramEvents extends EventEmitterClass<ProviderEventTypes> {
             }
         }
 
-        const sendObj: Record<string, any> = {
+        const sendObj: BotContext = {
             body,
             from: messagingEvent.recipient.id,
             name: '',
@@ -191,6 +191,7 @@ export class InstagramEvents extends EventEmitterClass<ProviderEventTypes> {
             body: commentValue.text,
             from: commentValue.from.id,
             name: commentValue.from.username || '',
+            username: commentValue.from.username || '',
             host: {
                 id: pageId,
                 phone: 'instagram',

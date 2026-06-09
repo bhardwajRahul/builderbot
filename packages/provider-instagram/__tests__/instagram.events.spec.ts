@@ -411,6 +411,7 @@ describe('InstagramEvents', () => {
                 body: 'Nice post!',
                 from: 'commenter_id',
                 name: 'testuser',
+                username: 'testuser',
                 host: {
                     id: 'page_id',
                     phone: 'instagram',

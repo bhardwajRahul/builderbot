@@ -11,7 +11,15 @@ import type { Middleware } from 'polka'
 
 import { InstagramEvents, InstagramListenMode } from './instagram.events'
 
+type AuthFailurePayload = {
+    title: string
+    instructions: string[]
+    payload?: { qr?: string; code?: string }
+}
+
 const INSTAGRAM_API_URL = 'https://graph.instagram.com/'
+
+const PROFILE_TTL_MS = 6 * 60 * 60 * 1000
 
 export type InstagramArgs = GlobalVendorArgs & {
     accessToken: string
@@ -47,6 +55,9 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
      */
     private pendingComments = new Map<string, { commentId: string; timestamp: number }>()
 
+    /** In-memory profile cache: IGSID → { name, username, ts } */
+    private profileCache = new Map<string, { name: string; username: string; ts: number }>()
+
     constructor(args?: InstagramArgs) {
         super()
         this.globalVendorArgs = { ...this.globalVendorArgs, ...args }
@@ -62,13 +73,13 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
         }
     }
 
-    protected async initVendor(): Promise<any> {
+    protected async initVendor(): Promise<InstagramEvents> {
         const vendor = new InstagramEvents()
         vendor.setListenMode(this.globalVendorArgs.listenMode || 'message')
         this.vendor = vendor
         this.server = this.server.post('/webhook', this.ctrlInMsg).get('/webhook', this.ctrlVerify)
 
-        vendor.on('message', (payload: any) => {
+        vendor.on('message', (payload: BotContext) => {
             if (payload?.comment?.id && payload?.from) {
                 this.pendingComments.set(payload.from, {
                     commentId: payload.comment.id,
@@ -102,7 +113,7 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
     busEvents = () => [
         {
             event: 'auth_failure',
-            func: (payload: any) => this.emit('auth_failure', payload),
+            func: (payload: AuthFailurePayload) => this.emit('auth_failure', payload),
         },
         {
             event: 'ready',
@@ -110,13 +121,22 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
         },
         {
             event: 'message',
-            func: (payload: BotContext) => {
+            func: async (payload: BotContext) => {
+                // Enrich DMs and postbacks (no username in webhook, no comment context).
+                // Comments already carry username from the webhook payload — skip them.
+                if (payload?.from && !payload?.name && !payload?.comment) {
+                    const profile = await this.getUserProfile(payload.from)
+                    if (profile) {
+                        payload.name = profile.name
+                        payload.username = profile.username
+                    }
+                }
                 this.emit('message', payload)
             },
         },
         {
             event: 'host',
-            func: (payload: any) => {
+            func: (payload: BotContext) => {
                 this.emit('host', payload)
             },
         },
@@ -162,6 +182,38 @@ class InstagramProvider extends ProviderClass<InstagramEvents> {
             }
         }
         return res.end('ERROR')
+    }
+
+    /**
+     * Resolve an Instagram Scoped ID (IGSID) to { name, username } via the
+     * User Profile API (graph.instagram.com — IGAA tokens only, NOT facebook.com).
+     * Results are cached for PROFILE_TTL_MS (6 h) to avoid redundant API calls.
+     * Any API error (consent required, transient, timeout) is non-fatal: returns null
+     * so the message is emitted without enrichment rather than blocking the flow.
+     */
+    private async getUserProfile(igsid: string): Promise<{ name: string; username: string } | null> {
+        const cached = this.profileCache.get(igsid)
+        if (cached && Date.now() - cached.ts < PROFILE_TTL_MS) {
+            return { name: cached.name, username: cached.username }
+        }
+
+        try {
+            const { version, accessToken } = this.globalVendorArgs
+            const url = `${INSTAGRAM_API_URL}${version}/${igsid}?fields=name,username&access_token=${accessToken}`
+            const response = await axios.get(url, { timeout: 3000 })
+            const username: string = response.data?.username || ''
+            const name: string = response.data?.name || username
+            this.profileCache.set(igsid, { name, username, ts: Date.now() })
+            return { name, username }
+        } catch (err) {
+            const igError = axios.isAxiosError(err) ? err.response?.data?.error : null
+            console.warn('[Instagram] getUserProfile failed (non-fatal):', {
+                igsid,
+                error: igError?.message || (err as Error).message,
+                code: igError?.code,
+            })
+            return null
+        }
     }
 
     async checkStatus(): Promise<void> {
