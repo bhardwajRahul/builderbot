@@ -16,7 +16,7 @@ describe('#transcribe', () => {
         expect(result).toBe('hola mundo')
         expect(create).toHaveBeenCalledTimes(1)
         const arg = create.mock.calls[0][0]
-        expect(arg.model).toBe('whisper-1')
+        expect(arg.model).toBe('gpt-4o-mini-transcribe')
         expect(arg.language).toBe('es')
     })
 
