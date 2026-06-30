@@ -20,6 +20,13 @@
  * })
  */
 
+import { OpenAISTTAdapter } from '@builderbot/provider-voice'
+import { DeepgramSTTAdapter, DeepgramSTTModel } from '@builderbot/provider-voice'
+import { OpenAITTSAdapter } from '@builderbot/provider-voice'
+import { ElevenLabsTTSAdapter, ElevenLabsModel } from '@builderbot/provider-voice'
+import { DeepgramTTSAdapter, DeepgramTTSModel } from '@builderbot/provider-voice'
+import { CartesiaTTSAdapter, CartesiaModel } from '@builderbot/provider-voice'
+
 // ── Main provider ─────────────────────────────────────────────────────────────
 
 export { WhatsAppVoiceProvider } from './whatsapp-voice/provider'
@@ -44,3 +51,19 @@ export type {
 // ── Adapter interfaces (re-exported from provider-voice for consumer convenience) ──
 
 export type { ISttAdapter, ITtsAdapter } from './types'
+
+// ── STT adapters ──────────────────────────────────────────────────────────────
+
+export { OpenAISTTAdapter, DeepgramSTTAdapter, DeepgramSTTModel }
+
+// ── TTS adapters ──────────────────────────────────────────────────────────────
+
+export {
+    OpenAITTSAdapter,
+    ElevenLabsTTSAdapter,
+    ElevenLabsModel,
+    DeepgramTTSAdapter,
+    DeepgramTTSModel,
+    CartesiaTTSAdapter,
+    CartesiaModel,
+}

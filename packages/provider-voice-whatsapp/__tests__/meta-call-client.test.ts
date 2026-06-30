@@ -4,7 +4,6 @@ import { type AxiosError, type AxiosResponse } from 'axios'
 // Mock axios before importing MetaCallClient so the module picks up the mock.
 jest.mock('axios')
 
- 
 const axiosMock = require('axios') as {
     post: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>
 }
@@ -66,17 +65,22 @@ describe('MetaCallClient', () => {
     describe('preAccept → accept ordering (FR-2 happy path)', () => {
         test('calls preAccept before accept and both succeed in order', async () => {
             const callOrder: string[] = []
+            const bodies: CallBody[] = []
 
             axiosMock.post.mockImplementation((_url, body) => {
                 callOrder.push((body as CallBody).action)
+                bodies.push(body as CallBody)
                 return Promise.resolve(okResponse())
             })
 
             await client.preAccept(CALL_ID, SDP_ANSWER)
-            await client.accept(CALL_ID)
+            await client.accept(CALL_ID, SDP_ANSWER)
 
             expect(callOrder).toEqual(['pre_accept', 'accept'])
             expect(axiosMock.post).toHaveBeenCalledTimes(2)
+            expect(bodies[0].session?.sdp).toBe(SDP_ANSWER)
+            expect(bodies[1].session?.sdp).toBe(SDP_ANSWER)
+            expect(bodies[0].session?.sdp).toBe(bodies[1].session?.sdp)
         })
 
         test('preAccept sends SDP answer payload to the correct endpoint', async () => {
@@ -94,14 +98,16 @@ describe('MetaCallClient', () => {
             expect(config.headers.Authorization).toBe('Bearer test-jwt-token')
         })
 
-        test('accept sends correct action without session body', async () => {
+        test('accept sends correct action with session body matching preAccept', async () => {
             axiosMock.post.mockResolvedValue(okResponse())
 
-            await client.accept(CALL_ID)
+            await client.accept(CALL_ID, SDP_ANSWER)
 
             const [, body] = axiosMock.post.mock.calls[0] as [string, CallBody]
             expect(body.action).toBe('accept')
-            expect(body.session).toBeUndefined()
+            expect(body.call_id).toBe(CALL_ID)
+            expect(body.session?.sdp).toBe(SDP_ANSWER)
+            expect(body.session?.sdp_type).toBe('answer')
         })
     })
 
@@ -137,10 +143,19 @@ describe('MetaCallClient', () => {
     // ── No retry on 4xx ───────────────────────────────────────────────────────
 
     describe('no retry on 4xx errors', () => {
-        test('throws immediately on 400 without retrying', async () => {
+        test('preAccept throws immediately on 400 without retrying', async () => {
             axiosMock.post.mockRejectedValue(axiosError(400))
 
             await expect(client.preAccept(CALL_ID, SDP_ANSWER)).rejects.toThrow()
+
+            // Only 1 call — no retry on 4xx
+            expect(axiosMock.post).toHaveBeenCalledTimes(1)
+        })
+
+        test('accept throws immediately on 400 without retrying', async () => {
+            axiosMock.post.mockRejectedValue(axiosError(400))
+
+            await expect(client.accept(CALL_ID, SDP_ANSWER)).rejects.toThrow()
 
             // Only 1 call — no retry on 4xx
             expect(axiosMock.post).toHaveBeenCalledTimes(1)

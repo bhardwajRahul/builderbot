@@ -151,7 +151,7 @@ export interface CallActionBody {
     action: CallAction
     /** The call identifier returned in the webhook. */
     call_id: string
-    /** SDP answer — required only for the pre_accept action. */
+    /** SDP answer — required for both `pre_accept` and `accept` actions. */
     session?: {
         /** SDP answer string. */
         sdp: string
@@ -212,6 +212,12 @@ interface IWhatsAppVoiceProviderBase extends GlobalVendorArgs {
     silenceThreshold?: number
     /** ICE server configuration for the WebRTC peer connection. */
     iceServers?: RTCIceServer[]
+    /**
+     * Maximum time in milliseconds to wait for ICE gathering to complete before
+     * sending the SDP to Meta via `pre_accept`. WhatsApp Calling uses non-trickle
+     * ICE, so all candidates must be embedded in the SDP. Default: 2000.
+     */
+    iceGatheringTimeoutMs?: number
     /** Custom STT adapter. When provided, overrides the built-in OpenAI Whisper transcription. */
     sttAdapter?: ISttAdapter
     /** Custom TTS adapter. When provided, overrides the built-in OpenAI TTS synthesis. */

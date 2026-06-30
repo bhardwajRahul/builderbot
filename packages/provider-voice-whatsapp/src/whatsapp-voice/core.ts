@@ -21,7 +21,7 @@ import type {
     WhatsAppCallEntryEvent,
     WhatsAppVoicePayload,
 } from '../types'
-import { createAudioSink, createAudioSource, createPeerConnection } from '../webrtc'
+import { createAudioSink, createAudioSource, createPeerConnection, waitForIceGathering } from '../webrtc'
 import type { RTCAudioSinkInstance, RTCAudioSourceInstance } from '../webrtc'
 
 /** Duration of each TTS publish frame in milliseconds. */
@@ -111,6 +111,7 @@ export class WhatsAppCallCoreVendor extends EventEmitter {
      * 6. Wires ICE state change for `Active` transition.
      *
      * If `pre_accept` fails, `accept` is NOT called and the session is cleaned up.
+     * If `accept` fails, a best-effort `end` is sent to Meta before the session is cleaned up.
      *
      * @param event The connect event from the webhook payload.
      * @returns Resolves when the call is accepted and audio pipeline is wired.
@@ -136,6 +137,14 @@ export class WhatsAppCallCoreVendor extends EventEmitter {
             return
         }
 
+        this.emit('notice', {
+            title: '[CALL] Inbound call received',
+            instructions: [
+                `from: ${event.from} | to: ${event.to} | direction: ${event.direction}`,
+                `call_id: ${callId}`,
+            ],
+        })
+
         const segmenter = new SilenceSegmenter({
             sampleRate: 48000, // wrtc delivers 48kHz; updated on first frame if different
             silenceMs: this.config.silenceMs ?? 800,
@@ -160,6 +169,64 @@ export class WhatsAppCallCoreVendor extends EventEmitter {
             // Transition: Idle → Connecting
             this.transitionState(callId, CallState.Idle, CallState.Connecting)
 
+            // Wire ALL WebRTC handlers BEFORE setRemoteDescription so no track or
+            // state event is missed. The `track` event in particular fires during
+            // setRemoteDescription, so registering ontrack afterwards loses the
+            // inbound audio track (no RTCAudioSink → no PCM → no STT).
+            session.pc.onconnectionstatechange = () => {
+                const state = session.pc.connectionState
+                this.emit('notice', {
+                    title: `[ICE ] connectionState → ${state}`,
+                    instructions: [`call_id: ${callId}`],
+                })
+                if (state === 'connected') {
+                    if (session.state === CallState.Accepted) {
+                        this.transitionState(callId, CallState.Accepted, CallState.Active)
+                        this.emit('notice', {
+                            title: '[ICE ] WebRTC peer connected — call is Active',
+                            instructions: [`call_id: ${callId} | from: ${event.from}`],
+                        })
+                    }
+                } else if (state === 'failed' || state === 'closed') {
+                    void this.onTerminate(callId)
+                }
+            }
+
+            // Log ICE connection state changes for diagnostics
+            session.pc.oniceconnectionstatechange = () => {
+                this.emit('notice', {
+                    title: `[ICE ] iceConnectionState → ${session.pc.iceConnectionState}`,
+                    instructions: [`call_id: ${callId}`],
+                })
+            }
+
+            // Log each local ICE candidate type (host / srflx / relay)
+            session.pc.onicecandidate = (evt: RTCPeerConnectionIceEvent) => {
+                if (evt.candidate) {
+                    const typMatch = /typ (\w+)/.exec(evt.candidate.candidate)
+                    const typ = typMatch ? typMatch[1] : 'unknown'
+                    this.emit('notice', {
+                        title: `[ICE ] candidate gathered — typ ${typ}`,
+                        instructions: [evt.candidate.candidate.slice(0, 120)],
+                    })
+                }
+            }
+
+            // Wire inbound audio track — fires during setRemoteDescription below
+            session.pc.ontrack = (trackEvent: RTCTrackEvent) => {
+                if (trackEvent.track.kind !== 'audio') return
+                this.emit('notice', {
+                    title: '[ICE ] Remote audio track received',
+                    instructions: [`call_id: ${callId} | kind: ${trackEvent.track.kind}`],
+                })
+                this.wireAudioSink(callId, trackEvent.track)
+            }
+
+            this.emit('notice', {
+                title: '[SDP ] Setting remote SDP offer',
+                instructions: [`call_id: ${callId}`],
+            })
+
             // Set remote SDP offer
             await session.pc.setRemoteDescription({
                 type: 'offer',
@@ -173,33 +240,50 @@ export class WhatsAppCallCoreVendor extends EventEmitter {
             session.pc.addTrack(outboundTrack)
             session.source = audioSource
 
+            this.emit('notice', {
+                title: '[SDP ] Creating SDP answer',
+                instructions: [`call_id: ${callId}`],
+            })
+
             // Create answer and transform
             const answerDesc = await session.pc.createAnswer()
             const transformedSdp = transformAnswer(answerDesc.sdp ?? '')
             assertOpus(transformedSdp)
             await session.pc.setLocalDescription({ type: 'answer', sdp: transformedSdp })
 
-            // Wire ICE connection state change
-            session.pc.onconnectionstatechange = () => {
-                const state = session.pc.connectionState
-                if (state === 'connected') {
-                    if (session.state === CallState.Accepted) {
-                        this.transitionState(callId, CallState.Accepted, CallState.Active)
-                    }
-                } else if (state === 'failed' || state === 'closed') {
-                    void this.onTerminate(callId)
-                }
-            }
+            this.emit('notice', {
+                title: '[SDP ] Answer transformed and validated (Opus)',
+                instructions: [`call_id: ${callId}`],
+            })
 
-            // Wire inbound audio track (fires once ICE completes but we wire now)
-            session.pc.ontrack = (trackEvent: RTCTrackEvent) => {
-                if (trackEvent.track.kind !== 'audio') return
-                this.wireAudioSink(callId, trackEvent.track)
-            }
+            // Wait for ICE gathering to complete so the SDP includes all candidates.
+            // WhatsApp Calling uses non-trickle ICE: candidates must be embedded in the
+            // pre_accept SDP. Sending the SDP before gathering is done means Meta gets
+            // no candidates and audio never flows.
+            this.emit('notice', {
+                title: '[ICE ] Gathering ICE candidates…',
+                instructions: [`call_id: ${callId} | timeout: ${this.config.iceGatheringTimeoutMs ?? 2000}ms`],
+            })
+            await waitForIceGathering(session.pc, this.config.iceGatheringTimeoutMs ?? 2000)
 
-            // pre_accept: send SDP answer to Meta
+            const gatheredSdp = transformAnswer(session.pc.localDescription?.sdp ?? transformedSdp)
+            const candidateCount = (gatheredSdp.match(/a=candidate:/g) ?? []).length
+            const candidateTypes = [...gatheredSdp.matchAll(/a=candidate:\S+ \d+ \S+ \d+ \S+ \d+ typ (\w+)/g)].map(
+                (m) => m[1]
+            )
+            this.emit('notice', {
+                title: `[ICE ] Gathering complete — ${candidateCount} candidate(s)`,
+                instructions: [`tipos: ${candidateTypes.join(', ') || 'NINGUNO (posible fallo de STUN/NAT)'}`],
+            })
+
+            this.emit('notice', {
+                title: '[API ] Sending pre_accept to Meta',
+                instructions: [`call_id: ${callId}`],
+            })
+
+            // pre_accept: send SDP answer (with embedded ICE candidates) to Meta
             try {
-                await this.metaClient.preAccept(callId, transformedSdp)
+                await this.metaClient.preAccept(callId, gatheredSdp)
             } catch (preAcceptErr) {
                 this.emit('notice', {
                     title: 'WhatsApp Voice: pre_accept failed',
@@ -218,14 +302,58 @@ export class WhatsAppCallCoreVendor extends EventEmitter {
                 return
             }
 
+            this.emit('notice', {
+                title: '[API ] pre_accept OK',
+                instructions: [`call_id: ${callId}`],
+            })
+
             // Transition: Connecting → PreAccepted
             this.transitionState(callId, CallState.Connecting, CallState.PreAccepted)
 
-            // accept: finalize call setup
-            await this.metaClient.accept(callId)
+            this.emit('notice', {
+                title: '[API ] Sending accept to Meta',
+                instructions: [`call_id: ${callId}`],
+            })
+
+            // accept: finalize call setup — same gathered SDP as pre_accept
+            try {
+                await this.metaClient.accept(callId, gatheredSdp)
+            } catch (acceptErr) {
+                this.emit('notice', {
+                    title: 'WhatsApp Voice: accept failed',
+                    instructions: [
+                        `call_id "${callId}" — accept rejected: ${(acceptErr as Error).message}`,
+                        'Ending call on Meta and releasing peer connection.',
+                    ],
+                })
+                try {
+                    await this.metaClient.end(callId)
+                } catch {
+                    // best-effort
+                }
+                this.releaseSession(callId)
+                return
+            }
+
+            this.emit('notice', {
+                title: '[API ] accept OK — call ready',
+                instructions: [`call_id: ${callId} | from: ${event.from}`],
+            })
 
             // Transition: PreAccepted → Accepted
             this.transitionState(callId, CallState.PreAccepted, CallState.Accepted)
+
+            // Race condition guard: ICE may have reached 'connected' while the accept
+            // HTTP call was in-flight (session.state was PreAccepted then, so the
+            // onconnectionstatechange guard skipped the Accepted→Active transition).
+            // Check now and drive the state machine forward if needed.
+            if (session.pc.connectionState === 'connected') {
+                this.transitionState(callId, CallState.Accepted, CallState.Active)
+                this.emit('notice', {
+                    title: '[ICE ] WebRTC peer connected — call is Active (post-accept check)',
+                    instructions: [`call_id: ${callId} | from: ${event.from}`],
+                })
+            }
         } catch (err) {
             this.emit('notice', {
                 title: 'WhatsApp Voice: call setup error',
@@ -293,10 +421,15 @@ export class WhatsAppCallCoreVendor extends EventEmitter {
             return
         }
 
+        this.emit('notice', {
+            title: '[TTS ] Publishing audio',
+            instructions: [`"${text.length > 80 ? text.slice(0, 80) + '…' : text}" → call_id: ${callId}`],
+        })
+
         const pcm = await this.ttsAdapter.synthesize(text)
         const sampleRate = this.ttsAdapter.sampleRate
         const samplesPerFrame = Math.round((PUBLISH_FRAME_MS / 1000) * sampleRate)
-        const frames = chunkPcm(bufferToInt16(pcm), samplesPerFrame, false)
+        const frames = chunkPcm(bufferToInt16(pcm), samplesPerFrame, true)
 
         for (const frame of frames) {
             session.source.onData({
@@ -325,18 +458,35 @@ export class WhatsAppCallCoreVendor extends EventEmitter {
         const sink = createAudioSink(track)
         session.sink = sink
 
-        let sampleRate = 0
         let activeSegmenter = session.segmenter
+        // Track the sample rate the current segmenter was built for, so we can
+        // rebuild it when the first real frame arrives (wrtc often starts at 48000
+        // before settling at 16000) or when the rate changes mid-call.
+        let segmenterRate = 48000
+        let firstFrame = true
 
-        sink.ondata = ({ samples, sampleRate: rate, channels }) => {
+        sink.ondata = ({ samples, sampleRate: rate, channelCount }) => {
+            // @roamhq/wrtc emits channelCount (not channels); fall back to 1 (mono).
+            const channels = channelCount ?? 1
+
+            if (firstFrame) {
+                firstFrame = false
+                this.emit('notice', {
+                    title: '[PCM ] First inbound audio frame received',
+                    instructions: [`call_id: ${callId} | sampleRate: ${rate}Hz | channels: ${channels}`],
+                })
+            }
+
             const currentSession = this.sessions.get(callId)
             if (!currentSession) {
                 sink.stop()
                 return
             }
 
-            // Rebuild segmenter if sample rate changed mid-call
-            if (sampleRate !== 0 && rate !== sampleRate) {
+            // Rebuild segmenter when the actual rate differs from the rate the
+            // current segmenter was configured for (covers first-frame rate mismatch
+            // and mid-call rate changes).
+            if (rate !== segmenterRate) {
                 const partial = activeSegmenter.flush()
                 if (partial) this.enqueueUtterance(currentSession, partial, callId)
                 activeSegmenter = new SilenceSegmenter({
@@ -345,9 +495,9 @@ export class WhatsAppCallCoreVendor extends EventEmitter {
                     silenceThreshold: this.config.silenceThreshold ?? 0.015,
                 })
                 currentSession.segmenter = activeSegmenter
+                segmenterRate = rate
             }
 
-            sampleRate = rate
             currentSession.inboundSampleRate = rate
 
             const mono = this.toMono(samples, channels)
@@ -385,6 +535,11 @@ export class WhatsAppCallCoreVendor extends EventEmitter {
 
             const session = this.sessions.get(callId)
             const callerPhone = session?.callerPhone ?? callId
+
+            this.emit('notice', {
+                title: '[STT ] Utterance transcribed',
+                instructions: [`"${body.trim()}" from ${callerPhone}`],
+            })
 
             const payload: WhatsAppVoicePayload = {
                 body: body.trim(),
@@ -469,7 +624,7 @@ export class WhatsAppCallCoreVendor extends EventEmitter {
      * @returns Mono Int16Array.
      */
     private toMono(data: Int16Array, channels: number): Int16Array {
-        if (channels <= 1) return data
+        if (!channels || channels <= 1) return data
         const frames = Math.floor(data.length / channels)
         const mono = new Int16Array(frames)
         for (let i = 0; i < frames; i++) {

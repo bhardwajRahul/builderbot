@@ -320,6 +320,52 @@ describe('WhatsAppCallCoreVendor', () => {
         })
     })
 
+    // ── onConnect happy path ──────────────────────────────────────────────────
+
+    describe('onConnect happy path', () => {
+        test('calls preAccept and accept with identical SDP on a valid connect event', async () => {
+            const { MetaCallClient } = require('../src/meta-call-client') as {
+                MetaCallClient: jest.MockedClass<typeof import('../src/meta-call-client').MetaCallClient>
+            }
+            await core.onConnect(connectEvent())
+
+            const clientInstance = MetaCallClient.mock.results[0].value as {
+                preAccept: jest.MockedFunction<(callId: string, sdp: string) => Promise<void>>
+                accept: jest.MockedFunction<(callId: string, sdp: string) => Promise<void>>
+            }
+
+            expect(clientInstance.preAccept).toHaveBeenCalledTimes(1)
+            expect(clientInstance.accept).toHaveBeenCalledTimes(1)
+
+            const preAcceptSdp = clientInstance.preAccept.mock.calls[0][1]
+            const acceptSdp = clientInstance.accept.mock.calls[0][1]
+
+            expect(preAcceptSdp).toBeDefined()
+            expect(acceptSdp).toBe(preAcceptSdp)
+        })
+
+        test('emits accept failed notice and calls end on Meta when accept rejects', async () => {
+            const { MetaCallClient } = require('../src/meta-call-client') as {
+                MetaCallClient: jest.MockedClass<typeof import('../src/meta-call-client').MetaCallClient>
+            }
+
+            const clientInstance = MetaCallClient.mock.results[0].value as {
+                accept: jest.MockedFunction<() => Promise<void>>
+                end: jest.MockedFunction<() => Promise<void>>
+            }
+            clientInstance.accept.mockRejectedValueOnce(new Error('HTTP 400'))
+
+            const notices: unknown[] = []
+            core.on('notice', (n) => notices.push(n))
+
+            await core.onConnect(connectEvent())
+
+            expect(clientInstance.end).toHaveBeenCalledTimes(1)
+            expect(notices).toHaveLength(1)
+            expect((notices[0] as { title: string }).title).toContain('accept failed')
+        })
+    })
+
     // ── onConnect state machine guards ────────────────────────────────────────
 
     describe('onConnect state machine guards', () => {

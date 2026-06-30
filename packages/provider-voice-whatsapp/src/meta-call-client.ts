@@ -38,7 +38,7 @@ export interface MetaCallClientArgs {
  * @example
  * const client = new MetaCallClient({ jwtToken, numberId, version })
  * await client.preAccept(callId, sdpAnswer)
- * await client.accept(callId)
+ * await client.accept(callId, sdpAnswer)
  */
 export class MetaCallClient {
     private readonly jwtToken: string
@@ -79,16 +79,22 @@ export class MetaCallClient {
      * Accept an inbound call that has already been pre-accepted.
      *
      * Must be called only after {@link preAccept} has resolved successfully.
+     * Meta requires the same SDP answer that was sent in {@link preAccept}.
      *
      * @param callId The call identifier from the webhook.
+     * @param sdpAnswer The transformed SDP answer — must match what was sent in `preAccept`.
      * @returns Resolves when Meta acknowledges the accept.
      * @throws {Error} On HTTP 4xx (no retry) or after exhausting retries on 5xx / network errors.
      */
-    public async accept(callId: string): Promise<void> {
+    public async accept(callId: string, sdpAnswer: string): Promise<void> {
         const body: CallActionBody = {
             messaging_product: 'whatsapp',
             action: CallAction.Accept,
             call_id: callId,
+            session: {
+                sdp: sdpAnswer,
+                sdp_type: 'answer',
+            },
         }
         await this.postWithRetry(body)
     }

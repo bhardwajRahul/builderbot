@@ -6,7 +6,6 @@
  * underlying native binding can be swapped in tests without touching core logic.
  */
 
- 
 const wrtc = require('@roamhq/wrtc') as {
     RTCPeerConnection: typeof RTCPeerConnection
     RTCAudioSink: new (track: MediaStreamTrack) => RTCAudioSinkInstance
@@ -29,8 +28,8 @@ export interface AudioSinkData {
     samples: Int16Array
     /** Sample rate of the audio in Hz (typically 48000 for WebRTC). */
     sampleRate: number
-    /** Number of audio channels (1 = mono, 2 = stereo). */
-    channels: number
+    /** Number of audio channels (1 = mono, 2 = stereo). @roamhq/wrtc emits this as `channelCount`. */
+    channelCount: number
     /** Total number of frames in this chunk. */
     numberOfFrames: number
     /** Width of each sample in bits (always 16). */
@@ -122,6 +121,33 @@ export const createPeerConnection = (iceServers?: RTCIceServer[]): RTCPeerConnec
  */
 export const createAudioSink = (track: MediaStreamTrack): RTCAudioSinkInstance => {
     return new wrtc.nonstandard.RTCAudioSink(track)
+}
+
+/**
+ * Wait until the RTCPeerConnection finishes ICE gathering.
+ *
+ * WhatsApp Calling uses non-trickle ICE: all candidates must be embedded in the
+ * SDP sent to Meta via `pre_accept`. This helper blocks until `iceGatheringState`
+ * reaches `"complete"` or the timeout fires (whichever comes first).
+ *
+ * @param pc        The peer connection to wait on.
+ * @param timeoutMs Maximum wait in milliseconds before giving up. Default: 2000.
+ * @returns Resolves when gathering is complete or timed out.
+ */
+export const waitForIceGathering = (pc: RTCPeerConnection, timeoutMs = 2000): Promise<void> => {
+    if (pc.iceGatheringState === 'complete') return Promise.resolve()
+    return new Promise<void>((resolve) => {
+        const prev = pc.onicegatheringstatechange
+        const done = () => {
+            clearTimeout(timer)
+            pc.onicegatheringstatechange = prev
+            resolve()
+        }
+        const timer = setTimeout(done, timeoutMs)
+        pc.onicegatheringstatechange = () => {
+            if (pc.iceGatheringState === 'complete') done()
+        }
+    })
 }
 
 /**
